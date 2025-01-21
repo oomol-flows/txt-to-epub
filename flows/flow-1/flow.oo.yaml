@@ -1,0 +1,10 @@
+nodes:
+  - task: self::txt-to-epub
+    title: "Txt To Epub #1"
+    node_id: txt-to-epub#1
+    inputs_from:
+      - handle: txt_file
+      - handle: book_title
+      - handle: author
+      - handle: epub_dir
+      - handle: cover_image

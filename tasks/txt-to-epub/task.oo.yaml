@@ -1,0 +1,35 @@
+inputs_def:
+  - handle: txt_file
+    description: Input
+    json_schema:
+      type: string
+      ui:widget: file
+  - handle: book_title
+    json_schema:
+      type: string
+  - handle: author
+    json_schema:
+      type: string
+  - handle: cover_image
+    json_schema:
+      type: string
+      ui:widget: file
+  - handle: epub_dir
+    json_schema:
+      type: string
+      ui:widget: dir
+outputs_def:
+  - handle: epub_file
+    description: Output
+    json_schema:
+      type: string
+      ui:widget: file
+ui:
+  default_width: 450
+executor:
+  name: python
+  options:
+    spawn: false
+    entry: __init__.py
+title: Txt To Epub
+icon: ":twemoji:blue-book:"
