@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.3
 scripts:
   # Script executed when the container is first loaded
   # eg: bootstrap: pip install pandas
@@ -9,4 +9,5 @@ icon: ":twemoji:blue-book:currentColor:"
 name: txt-to-epub
 description: txt to epub
 displayName: Txt To Epub
-releaseNotes: Txt To Epub
+releaseNotes: add code repo
+repository: https://github.com/oomol-flows/txt-to-epub

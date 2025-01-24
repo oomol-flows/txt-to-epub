@@ -212,9 +212,12 @@ def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
     :param file_name: 章节文件名
     :return: EpubHtml对象
     """
-    if not content:
-        raise ValueError("章节内容不能为空")
-
     chapter = epub.EpubHtml(title=title, file_name=file_name, lang='zh')  # 设置章节语言为中文
-    chapter.content = f'<h1>{title}</h1><p>{content}</p>'
+    
+    # 如果内容为空，只生成标题
+    if not content:
+        chapter.content = f'<h1>{title}</h1>'
+    else:
+        chapter.content = f'<h1>{title}</h1><p>{content}</p>'
+    
     return chapter
