@@ -1,64 +1,70 @@
 import os
 import logging
-from typing import Dict, Optional
-from oocana import Context
+import chardet
+from typing import Optional
 from ebooklib import epub
 
 from .data_structures import Volume
 from .parser import parse_hierarchical_content
-from .utils import create_epub_book, read_txt_file, write_epub_file
 from .css import add_css_style
 from .html_generator import create_volume_page, create_chapter_page, create_section_page, create_chapter
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main(params: Dict[str, Optional[str]], context: Context) -> Dict[str, str]:
-    """
-    主函数，负责将文本文件转换为EPUB格式的电子书。
+def _create_epub_book(title: str, author: str, cover_image: Optional[str] = None) -> epub.EpubBook:
+    """创建一个新的EPUB书籍并设置元数据。"""
+    book = epub.EpubBook()
+    book.set_title(title)
+    book.set_language('zh')  # 设置语言为中文
+    book.add_author(author)
 
-    :param params: 包含输入参数的字典
-    :param context: 上下文对象
-    :return: 包含输出文件路径的字典
-    """
-    # 只有 txt_file 和 epub_dir 为必填参数
-    required_params = ['txt_file', 'epub_dir']
-    
-    # 校验必需参数都不为空
-    if all(params.get(param) for param in required_params):
-        # 获取必需参数
-        txt_file = params['txt_file']
-        epub_dir = params['epub_dir']
-        
-        # 确保参数不为None
-        if not txt_file or not epub_dir:
-            logger.warning("必需参数不能为空")
-            return {"epub_file": ""}
-        
-        # 如果 book_title 未提供，使用不含后缀的文件名
-        book_title = params.get('book_title')
-        if not book_title:
-            txt_filename = os.path.basename(txt_file)
-            book_title = os.path.splitext(txt_filename)[0]
-        
-        # 设置默认值
-        author = params.get('author') or '未知'
-        cover_image = params.get('cover_image')  # 可为None
-        
-        epub_file = os.path.join(epub_dir, f"{book_title}.epub")
-        txt_to_epub(
-            txt_file=txt_file,
-            epub_file=epub_file,
-            title=book_title,
-            author=author,
-            cover_image=cover_image
-        )
-        return {"epub_file": epub_file}
-    
-    logger.warning("缺少必需参数（txt_file 和 epub_dir），无法生成EPUB文件")
-    return {"epub_file": ""}
+    if cover_image:
+        _set_cover_image(book, cover_image)
+
+    return book
+
+
+def _set_cover_image(book: epub.EpubBook, cover_image: str) -> None:
+    """设置书籍的封面图片。"""
+    try:
+        with open(cover_image, 'rb') as cover_file:
+            book.set_cover('cover.png', cover_file.read())
+    except IOError as e:
+        logger.error(f"无法读取封面图片 {cover_image}: {e}")
+
+
+def _read_txt_file(txt_file: str) -> str:
+    """读取文本文件内容，自动检测文件编码。"""
+    try:
+        # 检测文件编码
+        with open(txt_file, 'rb') as f:
+            raw_data = f.read()
+            result = chardet.detect(raw_data)
+            encoding = result.get('encoding') or 'gb18030'
+
+        # 统一使用GB18030编码处理中文编码问题
+        if encoding.lower() in ['gb2312', 'gbk']:
+            encoding = 'gb18030'
+
+        # 读取文件内容，使用错误替换策略
+        with open(txt_file, 'r', encoding=encoding, errors='replace') as f:
+            return f.read()
+            
+    except IOError as e:
+        raise IOError(f"无法读取文件 {txt_file}: {e}")
+    except Exception as e:
+        raise Exception(f"读取文件时发生错误 {txt_file}: {e}")
+
+
+def _write_epub_file(epub_file: str, book: epub.EpubBook) -> None:
+    """写入EPUB文件。"""
+    try:
+        epub.write_epub(epub_file, book, {})
+        logger.info(f"成功生成EPUB文件: {epub_file}")
+    except Exception as e:
+        raise Exception(f"无法写入EPUB文件 {epub_file}: {e}")
 
 
 def txt_to_epub(txt_file: str, epub_file: str, title: str = '我的书', 
@@ -76,10 +82,10 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = '我的书',
         raise ValueError("输入文件必须是.txt格式")
 
     # 创建EPUB书籍
-    book = create_epub_book(title, author, cover_image)
+    book = _create_epub_book(title, author, cover_image)
     
     # 读取并分析文本内容
-    content = read_txt_file(txt_file)
+    content = _read_txt_file(txt_file)
     volumes = parse_hierarchical_content(content)
 
     # 添加卷、章节和节到书籍
@@ -183,4 +189,4 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = '我的书',
 
     # 确保输出目录存在并写入文件
     os.makedirs(os.path.dirname(epub_file), exist_ok=True)
-    write_epub_file(epub_file, book)
+    _write_epub_file(epub_file, book)

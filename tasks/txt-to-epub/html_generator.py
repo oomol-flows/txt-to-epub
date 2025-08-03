@@ -1,5 +1,4 @@
 from ebooklib import epub
-from typing import Optional
 
 
 def create_volume_page(volume_title: str, file_name: str, chapter_count: int) -> epub.EpubHtml:
