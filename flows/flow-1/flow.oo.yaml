@@ -4,7 +4,12 @@ nodes:
     node_id: txt-to-epub#1
     inputs_from:
       - handle: txt_file
+        value: /oomol-driver/oomol-storage/txt/诡秘之主(1-500章).txt
       - handle: book_title
+        value: 诡秘之主
       - handle: author
+        value: 爱潜水的乌贼
       - handle: epub_dir
+        value: /oomol-driver/oomol-storage/txt
       - handle: cover_image
+        value: /oomol-driver/oomol-storage/txt/OIP-C.webp

@@ -218,6 +218,8 @@ def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
     if not content:
         chapter.content = f'<h1>{title}</h1>'
     else:
-        chapter.content = f'<h1>{title}</h1><p>{content}</p>'
+        # 将内容按行分割，并用<br>标签连接，确保段落换行
+        content_with_breaks = '<br/>'.join(content.splitlines())
+        chapter.content = f'<h1>{title}</h1><p>{content_with_breaks}</p>'
     
     return chapter
