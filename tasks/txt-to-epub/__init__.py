@@ -163,7 +163,8 @@ def split_into_chapters(content: str) -> list:
     chapter_list = []
     for i in range(1, len(chapters), 3):  # 注意：split 的结果会包含分组，所以步长为 3
         chapter_title = chapters[i].strip()  # 章节标题（如 "第1章 引言" 或 "第一章 引言"）
-        chapter_content = chapters[i+2].strip()  # 章节内容
+        # 只去除开头和结尾的换行符，保留段落缩进空格
+        chapter_content = chapters[i+2].strip('\n\r')  # 章节内容
         chapter_list.append((chapter_title, chapter_content))
 
     return chapter_list
@@ -218,8 +219,7 @@ def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
     if not content:
         chapter.content = f'<h1>{title}</h1>'
     else:
-        # 将内容按行分割，并用<br>标签连接，确保段落换行
-        content_with_breaks = '<br/>'.join(content.splitlines())
-        chapter.content = f'<h1>{title}</h1><p>{content_with_breaks}</p>'
+        # 使用<pre>标签包装内容以保留原始缩进和格式
+        chapter.content = f'<h1>{title}</h1><pre>{content}</pre>'
     
     return chapter
