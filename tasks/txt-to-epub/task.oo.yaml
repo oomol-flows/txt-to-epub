@@ -7,13 +7,19 @@ inputs_def:
   - handle: book_title
     json_schema:
       type: string
+    value:
+    nullable: true
   - handle: author
     json_schema:
       type: string
+    value:
+    nullable: true
   - handle: cover_image
     json_schema:
       type: string
       ui:widget: file
+    value:
+    nullable: true
   - handle: epub_dir
     json_schema:
       type: string
@@ -33,3 +39,4 @@ executor:
     entry: __init__.py
 title: Txt To Epub
 icon: ":twemoji:blue-book:"
+applet: true
