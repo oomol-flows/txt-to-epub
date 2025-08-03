@@ -40,3 +40,5 @@ executor:
 title: Txt To Epub
 icon: ":twemoji:blue-book:"
 applet: true
+description: 本模块作用是将书籍的 txt 文件转为 epub 文件。输入一个 txt 文件地址，一个转化后的存储地址。给用户返回一个 epub
+  文件。其他如书名，作者，封面为选填

@@ -35,22 +35,32 @@ def main(params: Dict[str, Optional[str]], context: Context) -> Dict[str, str]:
     :param context: 上下文对象
     :return: 包含输出文件路径的字典
     """
-    # 提取必需参数
-    required_params = ['txt_file', 'book_title', 'author', 'epub_dir', 'cover_image']
+    # 只有 txt_file 和 epub_dir 为必填参数
+    required_params = ['txt_file', 'epub_dir']
     
-    # 校验所有必需参数都不为空
+    # 校验必需参数都不为空
     if all(params.get(param) for param in required_params):
-        epub_file = os.path.join(params['epub_dir'], f"{params['book_title']}.epub")
+        # 如果 book_title 未提供，使用不含后缀的文件名
+        book_title = params.get('book_title')
+        if not book_title:
+            txt_filename = os.path.basename(params['txt_file'])
+            book_title = os.path.splitext(txt_filename)[0]
+        
+        # 设置默认值
+        author = params.get('author') or '未知'
+        cover_image = params.get('cover_image')  # 可为None
+        
+        epub_file = os.path.join(params['epub_dir'], f"{book_title}.epub")
         txt_to_epub(
             txt_file=params['txt_file'],
             epub_file=epub_file,
-            title=params['book_title'],
-            author=params['author'],
-            cover_image=params['cover_image']
+            title=book_title,
+            author=author,
+            cover_image=cover_image
         )
         return {"epub_file": epub_file}
     
-    logger.warning("缺少必需参数，无法生成EPUB文件")
+    logger.warning("缺少必需参数（txt_file 和 epub_dir），无法生成EPUB文件")
     return {"epub_file": ""}
 
 
@@ -436,18 +446,53 @@ def add_css_style(book: epub.EpubBook) -> None:
         padding: 2rem 1.5rem;
     }
     
-    /* 标题样式 */
-    h1 {
-        font-size: 1.5em;
-        font-weight: 600;
+    /* 标题样式 - 层次化设计 */
+    /* 卷/部/篇标题 (最高级别) */
+    .volume-title {
+        font-size: 2.2em;
+        font-weight: 700;
         text-align: center;
         color: #1a1a1a;
-        margin: 1.5rem 0 2rem 0;
+        margin: 2rem 0 3rem 0;
+        padding: 1.5rem 0;
+        border-bottom: 3px solid #3498db;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* 章标题 (中级别) */
+    .chapter-title {
+        font-size: 1.8em;
+        font-weight: 600;
+        text-align: center;
+        color: #2c3e50;
+        margin: 1.8rem 0 2.5rem 0;
+        padding: 1rem 0;
+        border-bottom: 2px solid #95a5a6;
+    }
+    
+    /* 节标题 (低级别) */
+    .section-title {
+        font-size: 1.4em;
+        font-weight: 500;
+        color: #34495e;
+        margin: 1.5rem 0 1rem 0;
+        padding: 0.5rem 0;
+        border-left: 4px solid #3498db;
+        padding-left: 1rem;
+    }
+    
+    /* 兼容性标题样式 */
+    h1 {
+        font-size: 1.8em;
+        font-weight: 600;
+        text-align: center;
+        color: #2c3e50;
+        margin: 1.8rem 0 2.5rem 0;
         padding: 1rem 0;
     }
     
     h2 {
-        font-size: 1.3em;
+        font-size: 1.4em;
         color: #34495e;
         margin: 1.5rem 0 1rem 0;
         font-weight: 500;
@@ -481,9 +526,25 @@ def add_css_style(book: epub.EpubBook) -> None:
             font-size: 1em;
         }
         
+        .volume-title {
+            font-size: 1.8em;
+            margin: 1.5rem 0 2rem 0;
+            padding: 1rem 0;
+        }
+        
+        .chapter-title {
+            font-size: 1.5em;
+            margin: 1.2rem 0 1.8rem 0;
+        }
+        
+        .section-title {
+            font-size: 1.2em;
+            margin: 1rem 0 0.8rem 0;
+        }
+        
         h1 {
-            font-size: 1.3em;
-            margin: 1rem 0 1.5rem 0;
+            font-size: 1.5em;
+            margin: 1.2rem 0 1.8rem 0;
         }
         
         h2 {
@@ -563,11 +624,17 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
         <link rel="stylesheet" type="text/css" href="style/nav.css"/>
     </head>
     <body class="chinese-text">
-        <h1>{volume_title}</h1>
-        <div style="margin-top: 2rem; text-align: center;">
-            <p style="color: #7f8c8d; font-size: 0.9em;">
+        <h1 class="volume-title">{volume_title}</h1>
+        <div style="margin-top: 3rem; text-align: center;">
+            <div style="font-size: 3em; margin-bottom: 2rem;">{icon}</div>
+            <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
                 本{unit_name}包含 {chapter_count} 章内容
             </p>
+            <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+                <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                </p>
+            </div>
         </div>
     </body>
     </html>
@@ -600,15 +667,21 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
-            <h1>{chapter_title}</h1>
+            <h1 class="chapter-title">{chapter_title}</h1>
             <div style="margin-top: 1.5rem;">
                 <pre>{chapter_content}</pre>
             </div>
             
             <div style="margin-top: 3rem; text-align: center;">
-                <p style="color: #7f8c8d; font-size: 0.9em;">
+                <div style="font-size: 3em; margin-bottom: 2rem;">📚</div>
+                <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
                     本章包含 {section_count} 个小节
                 </p>
+                <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+                    <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                        oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                    </p>
+                </div>
             </div>
         </body>
         </html>
@@ -624,11 +697,17 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
-            <h1>{chapter_title}</h1>
-            <div style="margin-top: 2rem; text-align: center;">
-                <p style="color: #7f8c8d; font-size: 0.9em;">
+            <h1 class="chapter-title">{chapter_title}</h1>
+            <div style="margin-top: 3rem; text-align: center;">
+                <div style="font-size: 3em; margin-bottom: 2rem;">📚</div>
+                <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
                     本章共分为 {section_count} 个小节
                 </p>
+                <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+                    <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                        oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                    </p>
+                </div>
             </div>
         </body>
         </html>
@@ -659,7 +738,7 @@ def create_section_page(section_title: str, section_content: str, file_name: str
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
-            <h2>{section_title}</h2>
+            <h2 class="section-title">{section_title}</h2>
             <div style="margin-top: 1rem;">
                 <pre>{section_content}</pre>
             </div>
@@ -703,7 +782,7 @@ def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
-            <h1>{title}</h1>
+            <h1 class="chapter-title">{title}</h1>
             <div style="margin-top: 1.5rem;">
                 <pre>{content}</pre>
             </div>
@@ -721,7 +800,7 @@ def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
-            <h1>{title}</h1>
+            <h1 class="chapter-title">{title}</h1>
         </body>
         </html>
         '''

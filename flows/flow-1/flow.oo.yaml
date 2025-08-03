@@ -4,12 +4,12 @@ nodes:
     node_id: txt-to-epub#1
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/oomol-storage/txt/《明朝那些事儿》.txt
       - handle: book_title
-        value: 明朝那些事
+        value:
       - handle: author
-        value: 当年明月
+        value:
       - handle: epub_dir
-        value: /oomol-driver/oomol-storage/txt
       - handle: cover_image
-        value: /oomol-driver/oomol-storage/txt/OIP-C.webp
+        value:
+description: 本模块作用是将书籍的 txt 文件转为 epub 文件。输入一个 txt 文件地址，一个转化后的存储地址。给用户返回一个 epub
+  文件。其他如书名，作者，封面为选填
