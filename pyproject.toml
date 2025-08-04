@@ -1,0 +1,20 @@
+[project]
+name = "text-to-epub"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "EbookLib==0.18",
+    "chardet==5.2.0",
+]
+
+[tool.poetry]
+package-mode = false
+packages = [{include = "text-to-epub", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
