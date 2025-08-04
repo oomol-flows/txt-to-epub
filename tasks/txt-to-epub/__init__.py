@@ -6,10 +6,10 @@ from oocana import Context
 import typing
 class Inputs(typing.TypedDict):
     txt_file: str
+    epub_dir: str
     book_title: str | None
     author: str | None
     cover_image: str | None
-    epub_dir: str
 class Outputs(typing.TypedDict):
     epub_file: str
 #endregion

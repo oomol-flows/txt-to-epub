@@ -1,2 +1,25 @@
 nodes:
-  []
+  - node_id: txt-to-epub#1
+    title: "Txt To Epub #1"
+    inputs_from:
+      - handle: txt_file
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+      - handle: epub_dir
+    task: self::txt-to-epub
+  - node_id: txts-to-epubs#1
+    title: "Txts To Epubs #1"
+    inputs_from:
+      - handle: folder
+      - handle: epub_dir
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+    subflow: self::txts-to-epubs

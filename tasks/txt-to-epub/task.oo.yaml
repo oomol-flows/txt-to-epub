@@ -4,6 +4,10 @@ inputs_def:
     json_schema:
       type: string
       ui:widget: file
+  - handle: epub_dir
+    json_schema:
+      type: string
+      ui:widget: dir
   - handle: book_title
     json_schema:
       type: string
@@ -20,10 +24,6 @@ inputs_def:
       ui:widget: file
     value:
     nullable: true
-  - handle: epub_dir
-    json_schema:
-      type: string
-      ui:widget: dir
 outputs_def:
   - handle: epub_file
     description: Output
