@@ -4,8 +4,8 @@ nodes:
     inputs_from:
       - handle: array
         from_node:
-          - node_id: list_files_from_folder#1
-            output_handle: file_paths
+          - node_id: filter_files#1
+            output_handle: files
     subflow: array::map
     slots:
       - slot_node_id: +slot#2
@@ -59,15 +59,27 @@ nodes:
       - handle: absolute_path
         value: true
     task: oomol-file::list_files_from_folder
-description: 本模块作用是将书籍的 txt 文件转为 epub 文件。输入一个 txt 文件地址，一个转化后的存储地址。给用户返回一个 epub
-  文件。其他如书名，作者，封面为选填
+  - node_id: filter_files#1
+    title: "Filter Files #1"
+    inputs_from:
+      - handle: files
+        from_node:
+          - node_id: list_files_from_folder#1
+            output_handle: file_paths
+      - handle: type
+        value: null
+      - handle: filt_hide
+        value: true
+    task: oomol-file::filter_files
+description: 本模块作用是将一个文件夹中的书籍的 txt 文件全都转为 epub
+  格式。输入一个文件夹地址，一个转化后的存储文件夹地址。给用户返回一个 epub 文件列表。其他如书名，作者，封面为选填
 inputs_def:
   - handle: folder
+    description: Input
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
-    description: Input
     executor_name: nodejs
   - handle: epub_dir
     json_schema:
@@ -78,17 +90,20 @@ inputs_def:
   - handle: book_title
     json_schema:
       type: string
+    value:
     nullable: true
     executor_name: python
   - handle: author
     json_schema:
       type: string
+    value:
     nullable: true
     executor_name: python
   - handle: cover_image
     json_schema:
       type: string
       ui:widget: file
+    value:
     nullable: true
     executor_name: python
 outputs_def:
@@ -101,3 +116,5 @@ outputs_from:
     from_node:
       - node_id: map#1
         output_handle: array
+title: Txts To Epubs
+icon: ":twemoji:books:"

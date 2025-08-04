@@ -3,17 +3,26 @@
     "map#1": {
       "rfNode": {
         "position": {
+          "x": 1418,
+          "y": 69.75
+        }
+      }
+    },
+    "list_files_from_folder#1": {
+      "contentWidth": 350,
+      "rfNode": {
+        "position": {
           "x": 486,
           "y": 0
         }
       }
     },
-    "list_files_from_folder#1": {
+    "filter_files#1": {
       "contentWidth": 450,
       "rfNode": {
         "position": {
-          "x": -330.32736399385277,
-          "y": 555.1954850427892
+          "x": 902,
+          "y": 40.5
         }
       }
     }
@@ -22,16 +31,16 @@
     "input": {
       "rfNode": {
         "position": {
-          "x": -674.7815118183261,
-          "y": 83.04683563570622
+          "x": 0,
+          "y": 181.75
         }
       }
     },
     "output": {
       "rfNode": {
         "position": {
-          "x": 972,
-          "y": 184.5
+          "x": 1904,
+          "y": 235.75
         }
       }
     }

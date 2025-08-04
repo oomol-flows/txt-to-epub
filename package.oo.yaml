@@ -1,4 +1,4 @@
-version: 0.0.5
+version: 0.0.6
 scripts:
   # Script executed when the container is first loaded
   # eg: bootstrap: pip install pandas
@@ -13,4 +13,4 @@ releaseNotes: update code and style
 repository: https://github.com/oomol-flows/txt-to-epub
 dependencies:
   array: 0.1.1
-  oomol-file: 0.0.13
+  oomol-file: 0.0.16
