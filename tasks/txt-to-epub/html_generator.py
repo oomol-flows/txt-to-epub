@@ -35,19 +35,38 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{volume_title}</title>
         <link rel="stylesheet" type="text/css" href="style/nav.css"/>
+        <style>
+            body {{
+                height: 100vh;
+                margin: 0;
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                page-break-after: always;
+                box-sizing: border-box;
+            }}
+            .volume-content {{
+                text-align: center;
+                max-width: 80%;
+            }}
+        </style>
     </head>
     <body class="chinese-text">
-        <h1 class="volume-title">{volume_title}</h1>
-        <div style="margin-top: 3rem; text-align: center;">
-            <div style="font-size: 3em; margin-bottom: 2rem;">{icon}</div>
-            <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
-                本{unit_name}包含 {chapter_count} 章内容
-            </p>
-            <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
-                <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+        <div class="volume-content">
+            <h1 class="volume-title">{volume_title}</h1>
+            <div style="margin-top: 2rem;">
+                <div style="font-size: 3em; margin-bottom: 1.5rem;">{icon}</div>
+                <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 2rem;">
+                    本{unit_name}包含 {chapter_count} 章内容
                 </p>
             </div>
+        </div>
+        <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+            <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+            </p>
         </div>
     </body>
     </html>
@@ -79,23 +98,41 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>{chapter_title}</title>
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
+            <style>
+                body {{
+                    height: 100vh;
+                    margin: 0;
+                    padding: 2rem;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    page-break-after: always;
+                    box-sizing: border-box;
+                }}
+                .chapter-content {{
+                    text-align: center;
+                    max-width: 80%;
+                    margin: 0 auto;
+                }}
+            </style>
         </head>
         <body class="chinese-text">
-            <h1 class="chapter-title">{chapter_title}</h1>
-            <div style="margin-top: 1.5rem;">
-                <pre>{chapter_content}</pre>
-            </div>
-            
-            <div style="margin-top: 3rem; text-align: center;">
-                <div style="font-size: 3em; margin-bottom: 2rem;">📚</div>
-                <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
-                    本章包含 {section_count} 个小节
-                </p>
-                <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
-                    <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                        oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+            <div class="chapter-content">
+                <h1 class="chapter-title">{chapter_title}</h1>
+                <div style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                    <pre>{chapter_content}</pre>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
+                    <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
+                        本章包含 {section_count} 个小节
                     </p>
                 </div>
+            </div>
+            <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+                <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                </p>
             </div>
         </body>
         </html>
@@ -109,19 +146,38 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>{chapter_title}</title>
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
+            <style>
+                body {{
+                    height: 100vh;
+                    margin: 0;
+                    padding: 2rem;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    page-break-after: always;
+                    box-sizing: border-box;
+                }}
+                .chapter-content {{
+                    text-align: center;
+                    max-width: 80%;
+                }}
+            </style>
         </head>
         <body class="chinese-text">
-            <h1 class="chapter-title">{chapter_title}</h1>
-            <div style="margin-top: 3rem; text-align: center;">
-                <div style="font-size: 3em; margin-bottom: 2rem;">📚</div>
-                <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 4rem;">
-                    本章共分为 {section_count} 个小节
-                </p>
-                <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
-                    <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                        oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+            <div class="chapter-content">
+                <h1 class="chapter-title">{chapter_title}</h1>
+                <div style="margin-top: 2rem;">
+                    <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
+                    <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
+                        本章共分为 {section_count} 个小节
                     </p>
                 </div>
+            </div>
+            <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
+                <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
+                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                </p>
             </div>
         </body>
         </html>
