@@ -1,0 +1,39 @@
+{
+  "nodes": {
+    "map#1": {
+      "rfNode": {
+        "position": {
+          "x": 486,
+          "y": 0
+        }
+      }
+    },
+    "list_files_from_folder#1": {
+      "contentWidth": 450,
+      "rfNode": {
+        "position": {
+          "x": -330.32736399385277,
+          "y": 555.1954850427892
+        }
+      }
+    }
+  },
+  "pseudoNodes": {
+    "input": {
+      "rfNode": {
+        "position": {
+          "x": -674.7815118183261,
+          "y": 83.04683563570622
+        }
+      }
+    },
+    "output": {
+      "rfNode": {
+        "position": {
+          "x": 972,
+          "y": 184.5
+        }
+      }
+    }
+  }
+}

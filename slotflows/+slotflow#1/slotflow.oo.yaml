@@ -1,0 +1,28 @@
+nodes:
+  - node_id: txt-to-epub#1
+    title: "Txt To Epub #1"
+    inputs_from:
+      - handle: txt_file
+        from_flow:
+          - input_handle: item
+      - handle: book_title
+        value: null
+        from_flow:
+          - input_handle: book_title
+      - handle: author
+        value: null
+        from_flow:
+          - input_handle: author
+      - handle: cover_image
+        value: null
+        from_flow:
+          - input_handle: cover_image
+      - handle: epub_dir
+        from_flow:
+          - input_handle: epub_dir
+    task: self::txt-to-epub
+outputs_from:
+  - handle: item
+    from_node:
+      - node_id: txt-to-epub#1
+        output_handle: epub_file
