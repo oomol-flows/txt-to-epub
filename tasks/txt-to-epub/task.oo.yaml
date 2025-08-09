@@ -30,18 +30,6 @@ outputs_def:
     json_schema:
       type: string
       ui:widget: file
-  - handle: validation_passed
-    json_schema:
-      type: boolean
-  - handle: validation_report
-    json_schema:
-      type: string
-  - handle: volumes_count
-    json_schema:
-      type: number
-  - handle: chapters_count
-    json_schema:
-      type: number
 ui:
   default_width: 450
 executor:

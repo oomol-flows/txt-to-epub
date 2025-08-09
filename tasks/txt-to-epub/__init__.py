@@ -12,10 +12,6 @@ class Inputs(typing.TypedDict):
     cover_image: str | None
 class Outputs(typing.TypedDict):
     epub_file: str
-    validation_passed: bool
-    validation_report: str
-    volumes_count: float
-    chapters_count: float
 #endregion
  
 # 导入核心转换功能
@@ -84,10 +80,6 @@ def main(params: Inputs, context: Context) -> Outputs:
         # 返回完整的结果信息
         return {
             "epub_file": result["output_file"],
-            "validation_passed": result["validation_passed"],
-            "validation_report": result["validation_report"],
-            "volumes_count": result["volumes_count"],
-            "chapters_count": result["chapters_count"]
         }
         
     except Exception as e:
@@ -97,9 +89,5 @@ def main(params: Inputs, context: Context) -> Outputs:
             "data":  f"转换失败：{str(e)}"
         })
         return {
-            "epub_file": "",
-            "validation_passed": False,
-            "validation_report": f"转换失败：{str(e)}",
-            "volumes_count": 0,
-            "chapters_count": 0
+            "epub_file": ""
         }
