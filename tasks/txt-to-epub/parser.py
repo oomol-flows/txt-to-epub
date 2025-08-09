@@ -42,16 +42,20 @@ def parse_hierarchical_content(content: str) -> List[Volume]:
                 volumes.append(Volume(title=None, chapters=[Chapter(title="序言", content=volume_parts[0].strip(), sections=[])]))
         
         # 处理有卷标题的部分，步长为3（因为split会产生分组）
+        seen_volume_titles = set()  # 用于跟踪已经见过的卷标题
         for i in range(1, len(volume_parts), 3):
             if i + 2 < len(volume_parts):
                 volume_title = volume_parts[i].strip()
                 volume_content = volume_parts[i + 2]
-                chapters = parse_chapters_from_content(volume_content)
-                if chapters:
-                    volumes.append(Volume(title=volume_title, chapters=chapters))
-                elif volume_content.strip():  # 如果有内容但没有章节结构
-                    # 将整个卷内容作为一个章节
-                    volumes.append(Volume(title=volume_title, chapters=[Chapter(title="正文", content=volume_content.strip(), sections=[])]))
+                # 检查卷标题是否重复，如果重复则跳过
+                if volume_title and volume_title not in seen_volume_titles:
+                    seen_volume_titles.add(volume_title)
+                    chapters = parse_chapters_from_content(volume_content)
+                    if chapters:
+                        volumes.append(Volume(title=volume_title, chapters=chapters))
+                    elif volume_content.strip():  # 如果有内容但没有章节结构
+                        # 将整个卷内容作为一个章节
+                        volumes.append(Volume(title=volume_title, chapters=[Chapter(title="正文", content=volume_content.strip(), sections=[])]))
 
     # 确保至少有一个卷
     if not volumes:
@@ -70,8 +74,9 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
     if not content or not content.strip():
         return []
     
-    # 匹配章节标题模式（支持数字和中文数字，包括大写中文数字）
-    chapter_pattern = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]*)')
+    # 匹配章节标题模式（支持数字和中文数字，包括大写中文数字，以及特殊章节类型）
+    # 支持：第X章、番外 、番外篇 、外传 、特别篇 、插话 等（特殊标题后必须有且仅有一个空格）
+    chapter_pattern = re.compile(r'((?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章) [^\n]*)\s*)')
     chapters_raw = chapter_pattern.split(content)
 
     chapter_list = []
@@ -90,11 +95,13 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
             chapter_list.append(Chapter(title="前言", content=chapters_raw[0].strip(), sections=[]))
     
     # split结果包含分组，so步长为3
+    seen_titles = set()  # 用于跟踪已经见过的章节标题
     for i in range(1, len(chapters_raw), 3):
         if i + 2 < len(chapters_raw):
             chapter_title = chapters_raw[i].strip()
             chapter_content = chapters_raw[i + 2].strip('\n\r')
-            if chapter_title:  # 确保章节标题不为空
+            if chapter_title and chapter_title not in seen_titles:  # 确保章节标题不为空且未重复
+                seen_titles.add(chapter_title)
                 # 进一步分析章节内容，看是否包含节
                 sections = parse_sections_from_content(chapter_content)
                 if sections:
@@ -105,7 +112,8 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
                     chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
         elif i + 1 < len(chapters_raw):  # 处理最后一个章节可能缺少内容的情况
             chapter_title = chapters_raw[i].strip()
-            if chapter_title:
+            if chapter_title and chapter_title not in seen_titles:
+                seen_titles.add(chapter_title)
                 chapter_list.append(Chapter(title=chapter_title, content="此章节内容为空。", sections=[]))
 
     return chapter_list
@@ -135,18 +143,21 @@ def parse_sections_from_content(content: str) -> List[Section]:
         section_list.append(Section(title="章节序言", content=sections_raw[0].strip()))
     
     # split结果包含分组，所以步长为3
+    seen_titles = set()  # 用于跟踪已经见过的节标题
     for i in range(1, len(sections_raw), 3):
         if i + 2 < len(sections_raw):
             section_title = sections_raw[i].strip()
             section_content = sections_raw[i + 2].strip('\n\r')
-            if section_title:  # 确保节标题不为空
+            if section_title and section_title not in seen_titles:  # 确保节标题不为空且未重复
+                seen_titles.add(section_title)
                 # 确保节内容不为空
                 if not section_content.strip():
                     section_content = "此节内容为空。"
                 section_list.append(Section(title=section_title, content=section_content))
         elif i + 1 < len(sections_raw):  # 处理最后一个节可能缺少内容的情况
             section_title = sections_raw[i].strip()
-            if section_title:
+            if section_title and section_title not in seen_titles:
+                seen_titles.add(section_title)
                 section_list.append(Section(title=section_title, content="此节内容为空。"))
 
     return section_list

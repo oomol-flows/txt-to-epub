@@ -13,15 +13,3 @@ nodes:
       - handle: epub_dir
         value: /oomol-driver/oomol-storage/txt
     task: self::txt-to-epub
-  - node_id: txts-to-epubs#1
-    title: "Txts To Epubs #1"
-    inputs_from:
-      - handle: folder
-      - handle: epub_dir
-      - handle: book_title
-        value: null
-      - handle: author
-        value: null
-      - handle: cover_image
-        value: null
-    subflow: self::txts-to-epubs
