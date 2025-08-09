@@ -3,7 +3,6 @@ nodes:
     title: "Txt To Epub #1"
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/oomol-storage/txt/诡秘之主新.txt
       - handle: book_title
         value: null
       - handle: author

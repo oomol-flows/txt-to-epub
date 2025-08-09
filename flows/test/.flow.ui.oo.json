@@ -1,7 +1,7 @@
 {
   "nodes": {
     "txt-to-epub#1": {
-      "contentWidth": 615.9387671313259,
+      "contentWidth": 824.7048651106423,
       "rfNode": {
         "position": {
           "x": 414.5,
@@ -11,7 +11,7 @@
       "sections": {
         "preview": {
           "_:oo-preview:_": {
-            "previewHeight": 419.25116367693107
+            "previewHeight": 400.3208748812483
           }
         }
       }

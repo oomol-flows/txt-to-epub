@@ -357,104 +357,100 @@ class WordCountValidator:
     
     def generate_validation_report(self) -> str:
         """
-        生成详细的验证报告
+        生成详细的验证报告（Markdown格式）
         
-        :return: 验证报告文本
+        :return: Markdown格式的验证报告文本
         """
         is_valid, result = self.compare_content()
         analysis = self.analyze_content_changes()
         
         report = []
-        report.append("TXT转EPUB文字内容完整性验证报告")
-        report.append("-" * 60)
+        report.append("# TXT转EPUB文字内容完整性验证报告")
         report.append("")
         
-        # 原始文件统计
-        report.append("📄 原始文件统计:")
-        report.append(f"  中文字符: {result['original_stats']['chinese_chars']:,}")
-        report.append(f"  英文字符: {result['original_stats']['english_chars']:,}")
-        report.append(f"  标点符号: {result['original_stats']['punctuation']:,}")
-        report.append(f"  总字符数: {result['original_stats']['total_chars']:,}")
+        # 使用表格展示转换前后对比
+        report.append("## � 转换前后对比")
         report.append("")
+        report.append("| 项目 | 转换前 | 转换后 | 差异 | 丢失率 |")
+        report.append("|------|--------|--------|------|--------|")
         
-        # 转换后统计
-        report.append("📚 转换后统计:")
-        report.append(f"  中文字符: {result['converted_stats']['chinese_chars']:,}")
-        report.append(f"  英文字符: {result['converted_stats']['english_chars']:,}")
-        report.append(f"  标点符号: {result['converted_stats']['punctuation']:,}")
-        report.append(f"  总字符数: {result['converted_stats']['total_chars']:,}")
-        report.append("")
-        
-        # 差异分析
-        report.append("📊 差异分析:")
         diffs = result['differences']
         rates = result['loss_rates']
         
         def format_diff(diff):
-            return f"+{diff}" if diff > 0 else str(diff)
+            if diff > 0:
+                return f"+{diff:,}"
+            elif diff < 0:
+                return f"{diff:,}"
+            else:
+                return "0"
         
-        report.append(f"  中文字符: {format_diff(diffs['chinese_chars'])} (丢失率: {rates['chinese_chars']:.2f}%)")
-        report.append(f"  英文字符: {format_diff(diffs['english_chars'])} (丢失率: {rates['english_chars']:.2f}%)")
-        report.append(f"  标点符号: {format_diff(diffs['punctuation'])}")
-        report.append(f"  总字符数: {format_diff(diffs['total_chars'])} (丢失率: {rates['total_chars']:.2f}%)")
+        def format_loss_rate(rate):
+            if rate > 0:
+                return f"{rate:.2f}%"
+            else:
+                return "0%"
+        
+        # 添加表格行
+        report.append(f"| 中文字符 | {result['original_stats']['chinese_chars']:,} | {result['converted_stats']['chinese_chars']:,} | {format_diff(diffs['chinese_chars'])} | {format_loss_rate(rates['chinese_chars'])} |")
+        report.append(f"| 英文字符 | {result['original_stats']['english_chars']:,} | {result['converted_stats']['english_chars']:,} | {format_diff(diffs['english_chars'])} | {format_loss_rate(rates['english_chars'])} |")
+        report.append(f"| 标点符号 | {result['original_stats']['punctuation']:,} | {result['converted_stats']['punctuation']:,} | {format_diff(diffs['punctuation'])} | - |")
+        report.append(f"| **总字符数** | **{result['original_stats']['total_chars']:,}** | **{result['converted_stats']['total_chars']:,}** | **{format_diff(diffs['total_chars'])}** | **{format_loss_rate(rates['total_chars'])}** |")
         report.append("")
-        
-        # 变化原因分析
-        report.append("🔍 字数变化原因分析:")
-        report.append("")
-        
-        if 'chinese_reason' in analysis:
-            report.append("【中文字符变化】")
-            report.append(f"  原因: {analysis['chinese_reason']}")
-            report.append(f"  关注度: {analysis['chinese_concern']}")
-            report.append("")
-        
-        if 'english_reason' in analysis:
-            report.append("【英文字符变化】")
-            report.append(f"  原因: {analysis['english_reason']}")
-            report.append(f"  关注度: {analysis['english_concern']}")
-            report.append("")
-        
-        if 'punctuation_reason' in analysis:
-            report.append("【标点符号变化】")
-            report.append(f"  原因: {analysis['punctuation_reason']}")
-            report.append(f"  关注度: {analysis['punctuation_concern']}")
-            report.append("")
-        
-        if 'overall_reason' in analysis:
-            report.append("【总体评估】")
-            report.append(f"  总结: {analysis['overall_reason']}")
-            report.append(f"  建议: {analysis['overall_concern']}")
-            report.append("")
         
         # 验证结果
         if is_valid:
-            report.append("✅ 验证结果: 通过")
+            report.append("## ✅ 验证结果：通过")
+            report.append("")
             report.append("转换完成后正文内容完整，没有明显的内容丢失。")
             report.append("")
-            report.append("💡 说明: 少量字符数差异是正常的，通常由以下因素造成：")
-            report.append("  • 格式化和标准化处理")
-            report.append("  • 空白字符的统一处理")
-            report.append("  • 章节结构的重新组织")
-            report.append("  • EPUB格式的技术要求")
+            report.append("> 💡 **说明**: 少量字符数差异是正常的，通常由以下因素造成：")
+            report.append("> - 格式化和标准化处理")
+            report.append("> - 空白字符的统一处理")
+            report.append("> - 章节结构的重新组织")
+            report.append("> - EPUB格式的技术要求")
         else:
-            report.append("❌ 验证结果: 失败")
-            report.append("转换过程中可能存在内容丢失，建议检查:")
-            if rates['chinese_chars'] > 1.0:
-                report.append("  - 中文字符丢失率超过1%，可能存在编码或解析问题")
-            if rates['english_chars'] > 2.0:
-                report.append("  - 英文字符丢失率超过2%，可能存在格式处理问题")
-            if rates['total_chars'] > 1.0:
-                report.append("  - 总体字符丢失率超过1%，建议检查解析逻辑")
+            report.append("## ❌ 验证结果：失败")
             report.append("")
-            report.append("🔧 建议的检查步骤:")
-            report.append("  1. 检查原文件是否使用了特殊编码")
-            report.append("  2. 确认文件结构是否符合解析规则")
-            report.append("  3. 验证重要章节内容是否完整")
-            report.append("  4. 检查是否有特殊格式导致解析错误")
+            report.append("转换过程中可能存在内容丢失，建议检查：")
+            report.append("")
+            if rates['chinese_chars'] > 1.0:
+                report.append("- ⚠️ 中文字符丢失率超过1%，可能存在编码或解析问题")
+            if rates['english_chars'] > 2.0:
+                report.append("- ⚠️ 英文字符丢失率超过2%，可能存在格式处理问题")
+            if rates['total_chars'] > 1.0:
+                report.append("- ⚠️ 总体字符丢失率超过1%，建议检查解析逻辑")
+            report.append("")
+            report.append("### 🔧 建议的检查步骤")
+            report.append("")
+            report.append("1. 检查原文件是否使用了特殊编码")
+            report.append("2. 确认文件结构是否符合解析规则")
+            report.append("3. 验证重要章节内容是否完整")
+            report.append("4. 检查是否有特殊格式导致解析错误")
         
         report.append("")
-     
+        
+        # 差异分析详情表格
+        report.append("## 🔍 字数变化原因分析")
+        report.append("")
+        
+        if analysis:
+            report.append("| 类型 | 变化原因 | 关注程度 |")
+            report.append("|------|----------|----------|")
+            
+            if 'chinese_reason' in analysis:
+                report.append(f"| 中文字符 | {analysis['chinese_reason']} | {analysis['chinese_concern']} |")
+            
+            if 'english_reason' in analysis:
+                report.append(f"| 英文字符 | {analysis['english_reason']} | {analysis['english_concern']} |")
+            
+            if 'punctuation_reason' in analysis:
+                report.append(f"| 标点符号 | {analysis['punctuation_reason']} | {analysis['punctuation_concern']} |")
+            
+            if 'overall_reason' in analysis:
+                report.append(f"| **总体评估** | **{analysis['overall_reason']}** | **{analysis['overall_concern']}** |")
+        
+        report.append("")
         
         return "\n".join(report)
 
