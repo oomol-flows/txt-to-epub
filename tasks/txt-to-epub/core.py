@@ -1,13 +1,14 @@
 import os
 import logging
 import chardet
-from typing import Optional
+from typing import Optional, Dict, Any
 from ebooklib import epub
 
 from .data_structures import Volume
 from .parser import parse_hierarchical_content
 from .css import add_css_style
 from .html_generator import create_volume_page, create_chapter_page, create_section_page, create_chapter
+from .word_count_validator import validate_conversion_integrity
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ def _write_epub_file(epub_file: str, book: epub.EpubBook) -> None:
 
 
 def txt_to_epub(txt_file: str, epub_file: str, title: str = '我的书', 
-                author: str = '未知', cover_image: Optional[str] = None) -> None:
+                author: str = '未知', cover_image: Optional[str] = None) -> Dict[str, Any]:
     """
     将文本文件转换为EPUB格式的电子书, 支持中文内容。
 
@@ -253,7 +254,28 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = '我的书',
         os.makedirs(os.path.dirname(epub_file), exist_ok=True)
         _write_epub_file(epub_file, book)
         
+        # 验证转换内容完整性
+        logger.info("开始验证转换内容完整性...")
+        is_valid, validation_report = validate_conversion_integrity(content, volumes)
+        
+        # 输出验证报告
+        print("\n" + validation_report)
+        
+        if not is_valid:
+            logger.warning("内容完整性验证未通过，可能存在内容丢失")
+        else:
+            logger.info("内容完整性验证通过，转换质量良好")
+        
         logger.info(f"EPUB转换完成: {epub_file}")
+        
+        return {
+            "success": True,
+            "output_file": epub_file,
+            "validation_passed": is_valid,
+            "validation_report": validation_report,
+            "volumes_count": len(volumes),
+            "chapters_count": sum(len(volume.chapters) for volume in volumes)
+        }
         
     except Exception as e:
         logger.error(f"转换过程中发生错误: {e}")

@@ -12,8 +12,12 @@ class Inputs(typing.TypedDict):
     cover_image: str | None
 class Outputs(typing.TypedDict):
     epub_file: str
+    validation_passed: bool
+    validation_report: str
+    volumes_count: float
+    chapters_count: float
 #endregion
-
+ 
 # 导入核心转换功能
 from .core import txt_to_epub
 
@@ -40,7 +44,13 @@ def main(params: Inputs, context: Context) -> Outputs:
     
     if not txt_file or not epub_dir:
         logger.error("缺少必需参数：txt_file 和 epub_dir 都不能为空")
-        return {"epub_file": ""}
+        return {
+            "epub_file": "",
+            "validation_passed": False,
+            "validation_report": "转换失败：缺少必需参数",
+            "volumes_count": 0,
+            "chapters_count": 0
+        }
     
     try:
         # 生成书籍标题（如果未提供则使用文件名）
@@ -58,7 +68,7 @@ def main(params: Inputs, context: Context) -> Outputs:
         
         # 执行转换
         logger.info(f"开始转换: {txt_file} -> {epub_file}")
-        txt_to_epub(
+        result = txt_to_epub(
             txt_file=txt_file,
             epub_file=epub_file,
             title=book_title,
@@ -67,8 +77,29 @@ def main(params: Inputs, context: Context) -> Outputs:
         )
         
         logger.info(f"转换完成: {epub_file}")
-        return {"epub_file": epub_file}
+        context.preview({
+            "type": "markdown",
+            "data": result["validation_report"]
+        })
+        # 返回完整的结果信息
+        return {
+            "epub_file": result["output_file"],
+            "validation_passed": result["validation_passed"],
+            "validation_report": result["validation_report"],
+            "volumes_count": result["volumes_count"],
+            "chapters_count": result["chapters_count"]
+        }
         
     except Exception as e:
         logger.error(f"转换过程中发生错误: {e}")
-        return {"epub_file": ""}
+        context.preview({
+            "type": "markdown",
+            "data":  f"转换失败：{str(e)}"
+        })
+        return {
+            "epub_file": "",
+            "validation_passed": False,
+            "validation_report": f"转换失败：{str(e)}",
+            "volumes_count": 0,
+            "chapters_count": 0
+        }
