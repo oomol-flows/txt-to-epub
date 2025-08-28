@@ -1,3 +1,0 @@
-
-EbookLib==0.18
-chardet==5.2.0
