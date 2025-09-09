@@ -149,7 +149,8 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
     
     # 匹配章节标题模式（支持数字和中文数字，包括大写中文数字，以及特殊章节类型）
     # 支持：第X章 标题、番外 、番外篇 、外传 、特别篇 、插话 等（特殊标题后必须有且仅有一个空格）
-    chapter_pattern = re.compile(r'((?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章) [^\n]*)\s*)')
+    # 要求章节标题独立成行，避免匹配正文中的章节引用
+    chapter_pattern = re.compile(r'(?:^|\n)(\s*(?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)\s+[^\n]*)\s*)(?=\n|$)', re.MULTILINE)
     chapters_raw = chapter_pattern.split(content)
 
     chapter_list = []
@@ -167,12 +168,21 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
         else:
             chapter_list.append(Chapter(title="前言", content=chapters_raw[0].strip(), sections=[]))
     
-    # split结果包含分组，so步长为3
+    # 新的正则表达式split结果结构：[前内容, 章节标题, 数字分组, 内容, 章节标题, 数字分组, 内容, ...]
     seen_titles = set()  # 用于跟踪已经见过的章节标题
-    for i in range(1, len(chapters_raw), 3):
-        if i + 2 < len(chapters_raw):
+    
+    i = 1  # 从第一个匹配的章节标题开始
+    while i < len(chapters_raw):
+        if i < len(chapters_raw) and chapters_raw[i]:  # 确保有章节标题
             chapter_title = chapters_raw[i].strip()
-            chapter_content = chapters_raw[i + 2].strip('\n\r')
+            
+            # 获取章节内容（跳过数字分组，取下一个非空元素）
+            content_index = i + 2  # 跳过数字分组
+            chapter_content = ""
+            
+            if content_index < len(chapters_raw):
+                chapter_content = chapters_raw[content_index].strip('\n\r')
+                
             if chapter_title and chapter_title not in seen_titles:  # 确保章节标题不为空且未重复
                 seen_titles.add(chapter_title)
                 # 进一步分析章节内容，看是否包含节
@@ -182,12 +192,12 @@ def parse_chapters_from_content(content: str) -> List[Chapter]:
                     chapter_list.append(Chapter(title=chapter_title, content="", sections=sections))
                 else:
                     # 如果没有节，章节直接包含内容
+                    if not chapter_content.strip():
+                        chapter_content = "此章节内容为空。"
                     chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
-        elif i + 1 < len(chapters_raw):  # 处理最后一个章节可能缺少内容的情况
-            chapter_title = chapters_raw[i].strip()
-            if chapter_title and chapter_title not in seen_titles:
-                seen_titles.add(chapter_title)
-                chapter_list.append(Chapter(title=chapter_title, content="此章节内容为空。", sections=[]))
+        
+        # 移动到下一个章节标题（每次跳过3个元素：标题、数字分组、内容）
+        i += 3
 
     return chapter_list
 
