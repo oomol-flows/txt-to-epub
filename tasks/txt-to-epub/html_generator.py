@@ -59,7 +59,6 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
             <div style="margin-top: 2rem;">
                 <div style="font-size: 3em; margin-bottom: 1.5rem;">{icon}</div>
                 <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 2rem;">
-                 This {unit_name} contains the content of {chapter_count} chapter
                 </p>
             </div>
         </div>
@@ -125,7 +124,6 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                        This chapter contains {section_count} sections
                     </p>
                 </div>
             </div>
@@ -170,7 +168,6 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                   This chapter is divided into {section_count} sections
                     </p>
                 </div>
             </div>
