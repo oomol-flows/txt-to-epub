@@ -1,56 +1,56 @@
-# TXT转EPUB工具 - 精美样式版
+# TXT to EPUB Converter - Elegant Style Edition
 
-这是一个将TXT格式的文本文件转换为EPUB电子书的工具，具有精美的排版样式设计。
+A tool for converting TXT format text files to EPUB eBooks with elegant typography design.
 
-## 特色功能
+## Key Features
 
-### 🎨 精美样式设计
-参考多看阅读器的专业排版风格，提供：
+### 🎨 Elegant Style Design
+Inspired by professional typography styles from multi-platform e-readers, providing:
 
-- **层次化标题系统**
-  - 卷/部/篇标题：采用小标宋字体，配有装饰线条和渐变效果
-  - 章标题：居中对齐，带有底部装饰符号
-  - 节标题：左侧彩色边框，渐变背景效果
+- **Hierarchical Title System**
+  - Volume/Part/Book titles: Using XiaoBiaoSong font with decorative lines and gradient effects
+  - Chapter titles: Center-aligned with bottom decorative symbols
+  - Section titles: Left colored border with gradient background effects
 
-- **优雅的字体搭配**
-  - 正文：宋体系列（DK-SONGTI, 方正宋三简体, 方正书宋等）
-  - 标题：小标宋字体（DK-XIAOBIAOSONG, 方正小标宋简体等）
-  - 强调：黑体系列（DK-HEITI, 方正兰亭黑简体等）
-  - 引用：楷体系列（DK-KAITI, 方正楷体, 华文楷体等）
+- **Elegant Font Combinations**
+  - Body text: Song family fonts (DK-SONGTI, FangZheng Song San, FangZheng Shu Song, etc.)
+  - Titles: XiaoBiaoSong fonts (DK-XIAOBIAOSONG, FangZheng XiaoBiaoSong, etc.)
+  - Emphasis: Hei family fonts (DK-HEITI, FangZheng LanTing Hei, etc.)
+  - Quotes: Kai family fonts (DK-KAITI, FangZheng Kai, HuaWen Kai, etc.)
 
-- **专业的颜色方案**
-  - 主色调：#91531d（温暖的棕色）
-  - 章标题：#1f4a92（深蓝色）
-  - 节标题：#478686（青绿色）
-  - 正文：#2c2c2c（深灰色）
+- **Professional Color Scheme**
+  - Primary color: #91531d (warm brown)
+  - Chapter titles: #1f4a92 (deep blue)
+  - Section titles: #478686 (teal green)
+  - Body text: #2c2c2c (dark gray)
 
-- **精致的视觉元素**
-  - 装饰性分隔线和符号
-  - 渐变背景和阴影效果
-  - 响应式设计适配不同屏幕
-  - 优化的中文排版
+- **Exquisite Visual Elements**
+  - Decorative dividers and symbols
+  - Gradient backgrounds and shadow effects
+  - Responsive design for different screen sizes
+  - Optimized Chinese typography
 
-### 📚 智能文本解析
-- **三级层次结构**：自动识别卷/部/篇 → 章 → 节
-- **灵活的标题格式**：支持数字和中文数字（包括大写）
-- **智能编码检测**：自动处理GB18030、GBK、UTF-8等编码
+### 📚 Intelligent Text Parsing
+- **Three-level hierarchy**: Auto-detect Volume/Part/Book → Chapter → Section
+- **Flexible title formats**: Support numeric and Chinese numerals (including traditional)
+- **Smart encoding detection**: Auto-handle GB18030, GBK, UTF-8 and other encodings
 
-### 🛠️ 使用方法
+### 🛠️ Usage
 
-#### 基本用法
+#### Basic Usage
 ```python
 from tasks.txt_to_epub import txt_to_epub
 
 txt_to_epub(
     txt_file="input.txt",
     epub_file="output.epub",
-    title="我的书",
-    author="作者名",
-    cover_image="cover.jpg"  # 可选
+    title="My Book",
+    author="Author Name",
+    cover_image="cover.jpg"  # optional
 )
 ```
 
-#### 作为工作流任务
+#### As Workflow Task
 ```python
 from tasks.txt_to_epub import main
 from oocana import Context
@@ -58,92 +58,92 @@ from oocana import Context
 params = {
     'txt_file': 'input.txt',
     'epub_dir': 'output/',
-    'book_title': '我的书',  # 可选
-    'author': '作者名',      # 可选
-    'cover_image': 'cover.jpg'  # 可选
+    'book_title': 'My Book',      # optional
+    'author': 'Author Name',      # optional
+    'cover_image': 'cover.jpg'    # optional
 }
 
 result = main(params, Context())
 ```
 
-### 📖 支持的文本格式
+### 📖 Supported Text Formats
 
-#### 标题识别模式
-- **卷级标题**：第一卷/第一部/第一篇 + 标题
-- **章级标题**：第一章 + 标题
-- **节级标题**：第一节 + 标题
+#### Title Recognition Patterns
+- **Volume-level titles**: Volume One/Part One/Book One + title
+- **Chapter-level titles**: Chapter One + title
+- **Section-level titles**: Section One + title
 
-#### 示例文本结构
+#### Example Text Structure
 ```
-第一卷 开篇之章
+Volume One: Opening Chapter
 
-第一章 初始
-这是章节内容...
+Chapter 1: Beginning
+This is chapter content...
 
-第一节 人物介绍
-这是节的内容...
+Section 1: Character Introduction
+This is section content...
 
-第二节 背景设定
-这是另一节的内容...
+Section 2: Background Setting
+This is another section's content...
 
-第二章 发展
-这是没有小节的章节内容...
+Chapter 2: Development
+This is chapter content without subsections...
 ```
 
-### 🎨 样式特点
+### 🎨 Style Features
 
-#### 卷标题样式
-- 使用小标宋字体，字号2.4em
-- 温暖的棕色主题 (#91531d)
-- 底部装饰线条和渐变效果
-- 居中对齐，充足的上下边距
+#### Volume Title Style
+- XiaoBiaoSong font, 2.4em size
+- Warm brown theme (#91531d)
+- Bottom decorative lines with gradient effects
+- Center-aligned with ample top and bottom margins
 
-#### 章标题样式
-- 使用小标宋字体，字号2em
-- 深蓝色主题 (#1f4a92)
-- 底部边框线配装饰符号
-- 居中对齐，优雅的间距
+#### Chapter Title Style
+- XiaoBiaoSong font, 2em size
+- Deep blue theme (#1f4a92)
+- Bottom border line with decorative symbols
+- Center-aligned with elegant spacing
 
-#### 节标题样式
-- 使用黑体，字号1.4em
-- 青绿色主题 (#478686)
-- 左侧彩色边框，渐变背景
-- 左对齐，前置装饰符号
+#### Section Title Style
+- Hei font, 1.4em size
+- Teal green theme (#478686)
+- Left colored border with gradient background
+- Left-aligned with prefix decorative symbols
 
-#### 正文样式
-- 宋体16px，行高1.8
-- 首行缩进2字符
-- 两端对齐，优化间距
-- 深灰色文字 (#2c2c2c)
+#### Body Text Style
+- Song font 16px, line height 1.8
+- First line indent 2 characters
+- Justified alignment with optimized spacing
+- Dark gray text (#2c2c2c)
 
-### 📱 响应式设计
-- 平板设备适配（768px以下）
-- 手机设备适配（480px以下）
-- 打印样式优化
-- 中文排版优化
+### 📱 Responsive Design
+- Tablet device adaptation (below 768px)
+- Mobile device adaptation (below 480px)
+- Print style optimization
+- Chinese typography optimization
 
-### 🔧 技术特性
-- **编码自动检测**：支持GB18030、GBK、UTF-8等
-- **错误处理**：完善的异常处理和日志记录
-- **内存优化**：高效的文本处理和EPUB生成
-- **标准兼容**：符合EPUB 3.0标准
+### 🔧 Technical Features
+- **Auto encoding detection**: Support GB18030, GBK, UTF-8, etc.
+- **Error handling**: Comprehensive exception handling and logging
+- **Memory optimization**: Efficient text processing and EPUB generation
+- **Standard compliance**: Compliant with EPUB 3.0 standard
 
-### 📦 依赖包
+### 📦 Dependencies
 ```
 EbookLib==0.18
 chardet==5.2.0
 ```
 
-### 🚀 快速测试
-运行测试脚本生成样例EPUB：
+### 🚀 Quick Test
+Run test script to generate sample EPUB:
 ```bash
 python test_epub_generation.py
 ```
 
-### 💡 样式灵感
-本工具的样式设计参考了：
-- [多看阅读器的CSS模板](https://github.com/Eninix/sigil-template)
-- 专业出版物的排版标准
-- 现代电子书的视觉设计趋势
+### 💡 Style Inspiration
+The style design of this tool is inspired by:
+- [DuoKan Reader's CSS templates](https://github.com/Eninix/sigil-template)
+- Professional publishing typography standards
+- Modern eBook visual design trends
 
-生成的EPUB文件在支持CSS的阅读器上将展现最佳视觉效果，特别是在小米阅读等支持多看格式的应用中。
+Generated EPUB files will display optimal visual effects on CSS-supporting readers, especially in applications that support DuoKan format like Xiaomi Reader.

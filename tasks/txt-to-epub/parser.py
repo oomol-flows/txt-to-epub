@@ -12,13 +12,13 @@ class ChinesePatterns:
     # 前言关键词
     PREFACE_KEYWORDS = ["前言", "序", "序言"]
     
-    # 卷/部/篇模式
+    # Volume/Part/Book patterns
     VOLUME_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})[卷部篇]\s+[^\n]*)')
     
-    # 章节模式
+    # Chapter patterns
     CHAPTER_PATTERN = re.compile(r'(?:^|\n)(\s*(?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)\s+[^\n]*)\s*)(?=\n|$)', re.MULTILINE)
     
-    # 节模式
+    # Section patterns
     SECTION_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})节\s+[^\n]*)')
 
 
@@ -47,43 +47,43 @@ class EnglishPatterns:
         'XVI': '16', 'XVII': '17', 'XVIII': '18', 'XIX': '19', 'XX': '20'
     }
     
-    # 卷/部/篇模式
+    # Volume/Part/Book patterns
     VOLUME_PATTERN = re.compile(r'(?:^|\n)(\s*(?:(?:Part|Book|Volume)\s+(?:I{1,3}V?|VI{0,3}|IX|X{1,2}|\d{1,2}|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty)(?::\s*[^\n]+)?)\s*)(?=\n|$)', re.MULTILINE | re.IGNORECASE)
     
-    # 章节模式
+    # Chapter patterns
     CHAPTER_PATTERN = re.compile(r'(?:^|\n)(\s*(?:Chapter|Ch\.?|Chap\.?)\s+(?:I{1,3}V?|VI{0,3}|IX|X{1,2}L?|\d{1,2}|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty|Fifty)(?::\s*[^\n]+)?\s*)(?=\n|$)', re.MULTILINE | re.IGNORECASE)
     
-    # 节模式
+    # Section patterns
     SECTION_PATTERN = re.compile(r'(?:^|\n)(\s*(?:Section|Sect\.?)\s+(?:\d{1,2}(?:\.\d+)?|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty)(?::\s*[^\n]+)?\s*)(?=\n|$)', re.MULTILINE | re.IGNORECASE)
     
-    # 数字编号节模式（如 1.1, 2.3）
+    # Numbered section patterns (e.g., 1.1, 2.3)
     NUMBERED_SECTION_PATTERN = re.compile(r'(?:^|\n)(\s*(\d+\.\d+)\s+[^\n]+\s*)(?=\n|$)', re.MULTILINE)
 
 
 def detect_language(content: str) -> str:
     """
-    检测文本的主要语言（中文或英文）
+    Detect the main language of the text (Chinese or English)
     
-    :param content: 文本内容
-    :return: 'chinese' 或 'english'
+    :param content: Text content
+    :return: 'chinese' or 'english'
     """
     if not content or not content.strip():
-        return 'chinese'  # 默认中文
+        return 'chinese'  # Default to Chinese
     
-    # 统计中文字符
+    # Count Chinese characters
     chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', content))
-    # 统计英文字母
+    # Count English letters
     english_chars = len(re.findall(r'[a-zA-Z]', content))
     
-    # 检查常见的中文章节关键词
+    # Check common Chinese chapter keywords
     chinese_keywords = ['第', '章', '节', '卷', '部', '篇', '序言', '前言', '目录']
     chinese_keyword_count = sum(content.count(kw) for kw in chinese_keywords)
     
-    # 检查常见的英文章节关键词
+    # Check common English chapter keywords
     english_keywords = ['Chapter', 'Section', 'Part', 'Book', 'Volume', 'Contents', 'Preface', 'Introduction']
     english_keyword_count = sum(content.lower().count(kw.lower()) for kw in english_keywords)
     
-    # 决策逻辑
+    # Decision logic
     if chinese_chars > english_chars * 0.5 or chinese_keyword_count > english_keyword_count:
         return 'chinese'
     else:
@@ -92,21 +92,21 @@ def detect_language(content: str) -> str:
 
 def remove_table_of_contents(content: str, language: str = None) -> str:
     """
-    移除文本中的目录部分，避免目录内容干扰正文章节识别。
-    支持中英文目录识别。
+    Remove the table of contents section from the text to avoid interference with chapter recognition.
+    Supports both Chinese and English table of contents recognition.
     
-    :param content: 原始文本内容
-    :param language: 语言类型，'chinese' 或 'english'，如果为None则自动检测
-    :return: 移除目录后的文本内容
+    :param content: Original text content
+    :param language: Language type, 'chinese' or 'english', auto-detect if None
+    :return: Text content with table of contents removed
     """
     if not content or not content.strip():
         return content
     
-    # 自动检测语言
+    # Auto-detect language
     if language is None:
         language = detect_language(content)
     
-    # 选择对应的模式
+    # Select corresponding patterns
     if language == 'english':
         patterns = EnglishPatterns()
         toc_keywords = patterns.TOC_KEYWORDS
@@ -120,25 +120,25 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
     
     lines = content.split('\n')
     
-    # 查找目录开始位置
+    # Find table of contents start position
     toc_start = -1
     toc_end = -1
     
     for i, line in enumerate(lines):
         stripped_line = line.strip()
         
-        # 识别目录开始：单独一行的目录关键词
+        # Identify table of contents start: standalone line with TOC keywords
         if stripped_line in toc_keywords or any(keyword.lower() == stripped_line.lower() for keyword in toc_keywords):
             toc_start = i
             continue
             
-        # 如果已经找到目录开始，查找目录结束
+        # If table of contents start found, look for the end
         if toc_start != -1:
-            # 目录结束的条件：
-            # 1. 遇到连续的空行（通常目录后面有空行分隔）
-            # 2. 遇到明显的正文内容（长段落）
-            if not stripped_line:  # 空行
-                # 检查后续是否有连续空行或正文开始
+            # Table of contents end conditions:
+            # 1. Consecutive empty lines (usually TOC is followed by empty lines)
+            # 2. Clear main content (long paragraphs)
+            if not stripped_line:  # Empty line
+                # Check if there are consecutive empty lines or main content following
                 next_non_empty = -1
                 for j in range(i + 1, min(i + 5, len(lines))):
                     if lines[j].strip():
@@ -147,7 +147,7 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
                         
                 if next_non_empty != -1:
                     next_line = lines[next_non_empty].strip()
-                    # 如果下一个非空行是正文内容（长度较长且不是章节标题格式）
+                    # If next non-empty line is main content (long and not chapter title format)
                     if len(next_line) > 30:
                         is_chapter = False
                         for pattern in chapter_patterns:
@@ -158,18 +158,18 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
                             toc_end = i
                             break
             
-            # 如果当前行是明显的正文开始（长段落）
+            # If current line is clearly the beginning of main content (long paragraph)
             elif len(stripped_line) > 50:
                 is_chapter = False
                 is_preface = False
                 
-                # 检查是否是章节标题
+                # Check if it's a chapter title
                 for pattern in chapter_patterns:
                     if pattern.search(stripped_line):
                         is_chapter = True
                         break
                 
-                # 检查是否是前言
+                # Check if it's a preface
                 if any(keyword.lower() == stripped_line.lower() for keyword in preface_keywords):
                     is_preface = True
                 
@@ -177,16 +177,16 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
                     toc_end = i - 1
                     break
     
-    # 如果找到了目录，移除目录部分
+    # If table of contents found, remove it
     if toc_start != -1 and toc_end != -1:
-        # 移除目录部分，但保留目录前后的内容
+        # Remove table of contents but keep content before and after
         remaining_lines = lines[:toc_start] + lines[toc_end + 1:]
         return '\n'.join(remaining_lines)
     elif toc_start != -1:
-        # 只找到目录开始，可能目录一直到某个明显的章节开始
+        # Only found table of contents start, possibly continues until clear chapter beginning
         for i in range(toc_start + 1, len(lines)):
             line = lines[i].strip()
-            # 找到第一个明显的正文章节标题或前言
+            # Find first clear main content chapter title or preface
             for pattern in chapter_patterns:
                 if pattern.search(line):
                     remaining_lines = lines[:toc_start] + lines[i:]
@@ -200,23 +200,23 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
 
 def parse_hierarchical_content(content: str) -> List[Volume]:
     """
-    将文本内容分割成卷、章、节的三级层次结构。
-    支持中英文书籍格式。
+    Split text content into three-level hierarchical structure: volumes, chapters, sections.
+    Supports both Chinese and English book formats.
 
-    :param content: 文本内容
-    :return: 卷列表，包含完整的层次结构
+    :param content: Text content
+    :return: List of volumes containing complete hierarchical structure
     """
     if not content or not content.strip():
-        # 如果内容为空，返回一个包含空章节的卷
-        return [Volume(title=None, chapters=[Chapter(title="空白内容", content="此文档内容为空或无法解析。", sections=[])])]
+        # If content is empty, return a volume with empty chapter
+        return [Volume(title=None, chapters=[Chapter(title="Empty Content", content="This document is empty or cannot be parsed.", sections=[])])]
     
-    # 检测语言
+    # Detect language
     language = detect_language(content)
     
-    # 预处理：移除目录部分，避免目录干扰正文解析
+    # Preprocessing: remove table of contents to avoid interference with content parsing
     content = remove_table_of_contents(content, language)
     
-    # 根据语言选择对应的模式
+    # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
         volume_pattern = patterns.VOLUME_PATTERN
@@ -224,7 +224,7 @@ def parse_hierarchical_content(content: str) -> List[Volume]:
         patterns = ChinesePatterns() 
         volume_pattern = patterns.VOLUME_PATTERN
     
-    # 首先按卷分割
+    # First split by volumes
     volume_parts = volume_pattern.split(content)
     
     volumes = []
@@ -279,17 +279,17 @@ def parse_hierarchical_content(content: str) -> List[Volume]:
 
 def parse_chapters_from_content(content: str, language: str = 'chinese') -> List[Chapter]:
     """
-    从给定的内容中分割出章节和节。
-    支持中英文章节格式。
+    Split chapters and sections from given content.
+    Supports both Chinese and English chapter formats.
 
-    :param content: 文本内容
-    :param language: 语言类型，'chinese' 或 'english'
-    :return: 章节列表，每个章节包含标题、内容和节列表
+    :param content: Text content
+    :param language: Language type, 'chinese' or 'english'
+    :return: Chapter list, each chapter contains title, content and section list
     """
     if not content or not content.strip():
         return []
     
-    # 根据语言选择对应的模式
+    # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
         chapter_pattern = patterns.CHAPTER_PATTERN
@@ -303,13 +303,13 @@ def parse_chapters_from_content(content: str, language: str = 'chinese') -> List
 
     chapter_list = []
     
-    # 如果没有找到章节标题，返回空列表（让上级函数处理）
+    # If no chapter titles found, return empty list (let parent function handle)
     if len(chapters_raw) == 1:
         return chapter_list
     
-    # 处理第一部分（可能是没有章节标题的前言内容）
+    # Process first part (possibly preface content without chapter title)
     if chapters_raw[0].strip():
-        # 将前言内容作为一个无标题章节
+        # Treat preface content as untitled chapter
         sections = parse_sections_from_content(chapters_raw[0], language)
         preface_title = "前言" if language == 'chinese' else "Preface"
         if sections:

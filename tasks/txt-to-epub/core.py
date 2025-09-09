@@ -10,15 +10,15 @@ from .css import add_css_style
 from .html_generator import create_volume_page, create_chapter_page, create_section_page, create_chapter
 from .word_count_validator import validate_conversion_integrity
 
-# 配置日志
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
 def _create_epub_book(title: str, author: str, cover_image: Optional[str] = None) -> epub.EpubBook:
-    """创建一个新的EPUB书籍并设置元数据。"""
+    """Create a new EPUB book and set metadata."""
     book = epub.EpubBook()
     book.set_title(title)
-    book.set_language('zh')  # 设置语言为中文
+    book.set_language('zh')  # Set language to Chinese
     book.add_author(author)
 
     if cover_image:
@@ -28,26 +28,26 @@ def _create_epub_book(title: str, author: str, cover_image: Optional[str] = None
 
 
 def _set_cover_image(book: epub.EpubBook, cover_image: str) -> None:
-    """设置书籍的封面图片。"""
+    """Set the cover image for the book."""
     try:
         with open(cover_image, 'rb') as cover_file:
             book.set_cover('cover.png', cover_file.read())
     except IOError as e:
-        logger.error(f"无法读取封面图片 {cover_image}: {e}")
+        logger.error(f"Unable to read cover image {cover_image}: {e}")
 
 
 def _read_txt_file(txt_file: str) -> str:
-    """读取文本文件内容，自动检测文件编码。"""
+    """Read text file content with automatic encoding detection."""
     try:
-        # 检查文件是否存在
+        # Check if file exists
         if not os.path.exists(txt_file):
-            raise FileNotFoundError(f"文件不存在: {txt_file}")
+            raise FileNotFoundError(f"File does not exist: {txt_file}")
         
-        # 检查文件大小
+        # Check file size
         file_size = os.path.getsize(txt_file)
         if file_size == 0:
-            logger.warning(f"文件为空: {txt_file}")
-            return "此文档内容为空。"
+            logger.warning(f"File is empty: {txt_file}")
+            return "This document is empty."
         
         # 检测文件编码
         with open(txt_file, 'rb') as f:
