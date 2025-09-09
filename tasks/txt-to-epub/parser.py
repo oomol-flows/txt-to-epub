@@ -4,12 +4,12 @@ from data_structures import Section, Chapter, Volume
 
 
 class ChinesePatterns:
-    """中文书籍的正则表达式模式"""
+    """Regular expression patterns for Chinese books"""
     
-    # 目录关键词
+    # Table of contents keywords
     TOC_KEYWORDS = ["目录"]
     
-    # 前言关键词
+    # Preface keywords
     PREFACE_KEYWORDS = ["前言", "序", "序言"]
     
     # Volume/Part/Book patterns
@@ -23,15 +23,15 @@ class ChinesePatterns:
 
 
 class EnglishPatterns:
-    """英文书籍的正则表达式模式"""
+    """Regular expression patterns for English books"""
     
-    # 目录关键词
+    # Table of contents keywords
     TOC_KEYWORDS = ["Contents", "Table of Contents", "TOC"]
     
-    # 前言关键词  
+    # Preface keywords  
     PREFACE_KEYWORDS = ["Preface", "Foreword", "Introduction", "Prologue"]
     
-    # 数字词汇映射
+    # Word to number mapping
     WORD_TO_NUM = {
         'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
         'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
@@ -39,7 +39,7 @@ class EnglishPatterns:
         'sixteen': '16', 'seventeen': '17', 'eighteen': '18', 'nineteen': '19', 'twenty': '20'
     }
     
-    # 罗马数字映射
+    # Roman numeral mapping
     ROMAN_TO_NUM = {
         'I': '1', 'II': '2', 'III': '3', 'IV': '4', 'V': '5',
         'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10',
@@ -230,45 +230,45 @@ def parse_hierarchical_content(content: str) -> List[Volume]:
     volumes = []
     
     if len(volume_parts) == 1:
-        # 没有卷，只有章节
+        # No volumes, only chapters
         chapters = parse_chapters_from_content(volume_parts[0], language)
         if chapters:
             volumes.append(Volume(title=None, chapters=chapters))
         else:
-            # 如果没有识别到章节，将整个内容作为一个章节
+            # If no chapters detected, treat entire content as one chapter
             default_title = "正文" if language == 'chinese' else "Content"
             volumes.append(Volume(title=None, chapters=[Chapter(title=default_title, content=volume_parts[0].strip(), sections=[])]))
     else:
-        # 处理第一部分（可能是序言等，没有卷标题的内容）
+        # Handle first part (possibly preface, content without volume title)
         if volume_parts[0].strip():
             pre_chapters = parse_chapters_from_content(volume_parts[0], language)
             if pre_chapters:
                 volumes.append(Volume(title=None, chapters=pre_chapters))
             else:
-                # 如果第一部分没有章节结构，作为序言章节
+                # If first part has no chapter structure, treat as preface chapter
                 preface_title = "序言" if language == 'chinese' else "Preface"
                 volumes.append(Volume(title=None, chapters=[Chapter(title=preface_title, content=volume_parts[0].strip(), sections=[])]))
         
-        # 处理有卷标题的部分，步长取决于正则表达式的分组数
-        step = 3 if language == 'chinese' else 2  # 英文模式分组较少
-        seen_volume_titles = set()  # 用于跟踪已经见过的卷标题
+        # Handle parts with volume titles, step depends on regex group count
+        step = 3 if language == 'chinese' else 2  # English mode has fewer groups
+        seen_volume_titles = set()  # Track seen volume titles
         for i in range(1, len(volume_parts), step):
             content_index = i + (step - 1)
             if content_index < len(volume_parts):
                 volume_title = volume_parts[i].strip()
                 volume_content = volume_parts[content_index]
-                # 检查卷标题是否重复，如果重复则跳过
+                # Check for duplicate volume titles, skip if duplicate
                 if volume_title and volume_title not in seen_volume_titles:
                     seen_volume_titles.add(volume_title)
                     chapters = parse_chapters_from_content(volume_content, language)
                     if chapters:
                         volumes.append(Volume(title=volume_title, chapters=chapters))
-                    elif volume_content.strip():  # 如果有内容但没有章节结构
-                        # 将整个卷内容作为一个章节
+                    elif volume_content.strip():  # If has content but no chapter structure
+                        # Treat entire volume content as one chapter
                         default_title = "正文" if language == 'chinese' else "Content"
                         volumes.append(Volume(title=volume_title, chapters=[Chapter(title=default_title, content=volume_content.strip(), sections=[])]))
 
-    # 确保至少有一个卷
+    # Ensure at least one volume
     if not volumes:
         error_title = "未知内容" if language == 'chinese' else "Unknown Content"
         error_content = "无法解析文档结构，请检查文档格式。" if language == 'chinese' else "Unable to parse document structure. Please check document format."
@@ -317,39 +317,39 @@ def parse_chapters_from_content(content: str, language: str = 'chinese') -> List
         else:
             chapter_list.append(Chapter(title=preface_title, content=chapters_raw[0].strip(), sections=[]))
     
-    # 根据语言确定split结果的步长
-    # 中文模式：[前内容, 章节标题, 数字分组, 内容, ...]  步长=3
-    # 英文模式：[前内容, 章节标题, 内容, ...] 步长=2  
+    # Determine step size based on language for split results
+    # Chinese mode: [pre-content, chapter title, number group, content, ...]  step=3
+    # English mode: [pre-content, chapter title, content, ...] step=2  
     step = 3 if language == 'chinese' else 2
-    seen_titles = set()  # 用于跟踪已经见过的章节标题
+    seen_titles = set()  # Track seen chapter titles
     
-    i = 1  # 从第一个匹配的章节标题开始
+    i = 1  # Start from first matched chapter title
     while i < len(chapters_raw):
-        if i < len(chapters_raw) and chapters_raw[i]:  # 确保有章节标题
+        if i < len(chapters_raw) and chapters_raw[i]:  # Ensure chapter title exists
             chapter_title = chapters_raw[i].strip()
             
-            # 获取章节内容
+            # Get chapter content
             content_index = i + (step - 1)
             chapter_content = ""
             
             if content_index < len(chapters_raw):
                 chapter_content = chapters_raw[content_index].strip('\n\r')
                 
-            if chapter_title and chapter_title not in seen_titles:  # 确保章节标题不为空且未重复
+            if chapter_title and chapter_title not in seen_titles:  # Ensure title is not empty and not duplicate
                 seen_titles.add(chapter_title)
-                # 进一步分析章节内容，看是否包含节
+                # Further analyze chapter content for sections
                 sections = parse_sections_from_content(chapter_content, language)
                 if sections:
-                    # 如果有节，章节内容为空（内容都在节中）
+                    # If has sections, chapter content is empty (all content is in sections)
                     chapter_list.append(Chapter(title=chapter_title, content="", sections=sections))
                 else:
-                    # 如果没有节，章节直接包含内容
+                    # If no sections, chapter directly contains content
                     if not chapter_content.strip():
                         empty_content = "此章节内容为空。" if language == 'chinese' else "This chapter is empty."
                         chapter_content = empty_content
                     chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
         
-        # 移动到下一个章节标题
+        # Move to next chapter title
         i += step
 
     return chapter_list
@@ -357,20 +357,20 @@ def parse_chapters_from_content(content: str, language: str = 'chinese') -> List
 
 def parse_sections_from_content(content: str, language: str = 'chinese') -> List[Section]:
     """
-    从给定的章节内容中分割出节。
-    支持中英文节格式。
+    Split sections from given chapter content.
+    Supports both Chinese and English section formats.
 
-    :param content: 章节内容
-    :param language: 语言类型，'chinese' 或 'english'
-    :return: 节列表，每个节包含标题和内容
+    :param content: Chapter content
+    :param language: Language type, 'chinese' or 'english'
+    :return: Section list, each section contains title and content
     """
     if not content or not content.strip():
         return []
     
-    # 根据语言选择对应的模式
+    # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
-        # 英文尝试多种节模式
+        # Try multiple section patterns for English
         section_patterns = [patterns.SECTION_PATTERN, patterns.NUMBERED_SECTION_PATTERN]
     else:
         patterns = ChinesePatterns()
@@ -380,44 +380,44 @@ def parse_sections_from_content(content: str, language: str = 'chinese') -> List
     sections_raw = None
     active_pattern = None
     
-    # 尝试不同的节模式
+    # Try different section patterns
     for pattern in section_patterns:
         sections_raw = pattern.split(content)
-        if len(sections_raw) > 1:  # 找到匹配的模式
+        if len(sections_raw) > 1:  # Found matching pattern
             active_pattern = pattern
             break
     
-    # 如果没有找到节模式，返回空列表
+    # If no section pattern found, return empty list
     if sections_raw is None or len(sections_raw) == 1:
         return section_list
     
-    # 处理第一部分（章节序言，没有节标题的内容）
+    # Handle first part (chapter preface, content without section title)
     if sections_raw[0].strip():
         preface_title = "章节序言" if language == 'chinese' else "Chapter Preface"
         section_list.append(Section(title=preface_title, content=sections_raw[0].strip()))
     
-    # 根据模式和语言确定步长
+    # Determine step size based on pattern and language
     if language == 'english' and active_pattern == patterns.NUMBERED_SECTION_PATTERN:
-        step = 3  # 数字编号模式有分组
+        step = 3  # Numbered pattern has groups
     elif language == 'english':
-        step = 2  # 普通英文模式
+        step = 2  # Regular English mode
     else:
-        step = 3  # 中文模式有分组
+        step = 3  # Chinese mode has groups
     
-    seen_titles = set()  # 用于跟踪已经见过的节标题
+    seen_titles = set()  # Track seen section titles
     for i in range(1, len(sections_raw), step):
         content_index = i + (step - 1)
         if content_index < len(sections_raw):
             section_title = sections_raw[i].strip()
             section_content = sections_raw[content_index].strip('\n\r')
-            if section_title and section_title not in seen_titles:  # 确保节标题不为空且未重复
+            if section_title and section_title not in seen_titles:  # Ensure title is not empty and not duplicate
                 seen_titles.add(section_title)
-                # 确保节内容不为空
+                # Ensure section content is not empty
                 if not section_content.strip():
                     empty_content = "此节内容为空。" if language == 'chinese' else "This section is empty."
                     section_content = empty_content
                 section_list.append(Section(title=section_title, content=section_content))
-        elif i + 1 < len(sections_raw):  # 处理最后一个节可能缺少内容的情况
+        elif i + 1 < len(sections_raw):  # Handle case where last section may lack content
             section_title = sections_raw[i].strip()
             if section_title and section_title not in seen_titles:
                 seen_titles.add(section_title)

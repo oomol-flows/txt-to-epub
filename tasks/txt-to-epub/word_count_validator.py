@@ -3,12 +3,12 @@ import logging
 from typing import Dict, List, Tuple, Any
 from .data_structures import Volume, Chapter, Section
 
-# 配置日志
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
 class WordCountValidator:
-    """文字数量验证器，用于对比转换前后的文字数量"""
+    """Word count validator for comparing text quantity before and after conversion"""
     
     def __init__(self):
         self.original_stats = {}
@@ -16,47 +16,47 @@ class WordCountValidator:
     
     def clean_text_for_counting(self, text: str) -> str:
         """
-        清理文本用于统计，移除多余的空白字符和标点符号
+        Clean text for counting, remove extra whitespace and punctuation
         
-        :param text: 原始文本
-        :return: 清理后的文本
+        :param text: Original text
+        :return: Cleaned text
         """
         if not text:
             return ""
         
-        # 移除多余的空白字符（空格、制表符、换行符等）
+        # Remove extra whitespace (spaces, tabs, newlines, etc.)
         cleaned = re.sub(r'\s+', '', text)
         
-        # 移除常见的标点符号和特殊字符（但保留中文字符）
-        # 这里只移除明显的分隔符，保留可能有意义的标点
-        cleaned = re.sub(r'[　\u3000]+', '', cleaned)  # 移除中文空格
+        # Remove common punctuation and special characters (but keep Chinese characters)
+        # Only remove obvious separators, keep potentially meaningful punctuation
+        cleaned = re.sub(r'[　\u3000]+', '', cleaned)  # Remove Chinese spaces
         
         return cleaned
     
     def count_characters(self, text: str) -> Dict[str, int]:
         """
-        统计文本中的字符数量
+        Count characters in text
         
-        :param text: 文本内容
-        :return: 字符统计字典
+        :param text: Text content
+        :return: Character statistics dictionary
         """
         cleaned_text = self.clean_text_for_counting(text)
         
-        # 统计中文字符（包括中文标点）
+        # Count Chinese characters (including Chinese punctuation)
         chinese_chars = len(re.findall(r'[\u4e00-\u9fff\u3400-\u4dbf]', cleaned_text))
         
-        # 统计英文字母和数字
+        # Count English letters and numbers
         english_chars = len(re.findall(r'[a-zA-Z0-9]', cleaned_text))
         
-        # 统计标点符号 - 使用Unicode范围避免编码问题
-        chinese_punctuation = len(re.findall(r'[\u3000-\u303f\uff00-\uffef]', cleaned_text))  # 中文标点
-        english_punctuation = len(re.findall(r'[.,!?;:()\[\]<>"\'\\-]', cleaned_text))  # 英文标点
+        # Count punctuation - use Unicode ranges to avoid encoding issues
+        chinese_punctuation = len(re.findall(r'[\u3000-\u303f\uff00-\uffef]', cleaned_text))  # Chinese punctuation
+        english_punctuation = len(re.findall(r'[.,!?;:()\[\]<>"\'\\-]', cleaned_text))  # English punctuation
         punctuation = chinese_punctuation + english_punctuation
         
-        # 总字符数（排除空白字符）
+        # Total characters (excluding whitespace)
         total_chars = len(cleaned_text)
         
-        # 原始文本总长度（包括空白字符）
+        # Original text total length (including whitespace)
         original_length = len(text) if text else 0
         
         return {
@@ -69,29 +69,29 @@ class WordCountValidator:
     
     def analyze_original_content(self, content: str) -> Dict[str, int]:
         """
-        分析原始txt文件的文字统计
+        Analyze text statistics of original txt file
         
-        :param content: 原始文本内容
-        :return: 统计结果字典
+        :param content: Original text content
+        :return: Statistics result dictionary
         """
         stats = self.count_characters(content)
         self.original_stats = stats
         
-        logger.info(f"原始文件统计:")
-        logger.info(f"  - 中文字符: {stats['chinese_chars']}")
-        logger.info(f"  - 英文字符: {stats['english_chars']}")
-        logger.info(f"  - 标点符号: {stats['punctuation']}")
-        logger.info(f"  - 总字符数(无空白): {stats['total_chars']}")
-        logger.info(f"  - 原始长度(含空白): {stats['original_length']}")
+        logger.info(f"Original file statistics:")
+        logger.info(f"  - Chinese characters: {stats['chinese_chars']}")
+        logger.info(f"  - English characters: {stats['english_chars']}")
+        logger.info(f"  - Punctuation: {stats['punctuation']}")
+        logger.info(f"  - Total characters (no whitespace): {stats['total_chars']}")
+        logger.info(f"  - Original length (with whitespace): {stats['original_length']}")
         
         return stats
     
     def extract_content_from_volumes(self, volumes: List[Volume]) -> str:
         """
-        从转换后的卷结构中提取所有文本内容
+        Extract all text content from converted volume structure
         
-        :param volumes: 卷列表
-        :return: 提取的所有文本内容
+        :param volumes: Volume list
+        :return: Extracted all text content
         """
         all_content = []
         
@@ -130,11 +130,11 @@ class WordCountValidator:
         self.converted_stats = stats
         
         logger.info(f"转换后内容统计:")
-        logger.info(f"  - 中文字符: {stats['chinese_chars']}")
-        logger.info(f"  - 英文字符: {stats['english_chars']}")
-        logger.info(f"  - 标点符号: {stats['punctuation']}")
-        logger.info(f"  - 总字符数(无空白): {stats['total_chars']}")
-        logger.info(f"  - 原始长度(含空白): {stats['original_length']}")
+        logger.info(f"  - Chinese characters: {stats['chinese_chars']}")
+        logger.info(f"  - English characters: {stats['english_chars']}")
+        logger.info(f"  - Punctuation: {stats['punctuation']}")
+        logger.info(f"  - Total characters (no whitespace): {stats['total_chars']}")
+        logger.info(f"  - Original length (with whitespace): {stats['original_length']}")
         
         return stats
     

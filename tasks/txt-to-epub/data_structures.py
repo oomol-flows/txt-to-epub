@@ -1,18 +1,18 @@
 from typing import Optional, List, NamedTuple
 
-# 定义数据结构
+# Define data structures
 class Section(NamedTuple):
-    """表示一个节的数据结构"""
+    """Data structure representing a section"""
     title: str
     content: str
 
 class Chapter(NamedTuple):
-    """表示一个章的数据结构"""
+    """Data structure representing a chapter"""
     title: str
     content: str
     sections: List[Section]
 
 class Volume(NamedTuple):
-    """表示一个卷/部/篇的数据结构"""
+    """Data structure representing a volume/part/book"""
     title: Optional[str]
     chapters: List[Chapter]
