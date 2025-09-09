@@ -302,20 +302,20 @@ class WordCountValidator:
         all_content = []
         
         for volume in volumes:
-            # 添加卷标题（如果有）
+            # Add volume title (if exists)
             if volume.title:
                 all_content.append(volume.title)
             
             for chapter in volume.chapters:
-                # 添加章节标题
+                # Add chapter title
                 if chapter.title:
                     all_content.append(chapter.title)
                 
-                # 添加章节内容
+                # Add chapter content
                 if chapter.content:
                     all_content.append(chapter.content)
                 
-                # 添加节的内容
+                # Add section content
                 for section in chapter.sections:
                     if section.title:
                         all_content.append(section.title)
@@ -367,8 +367,8 @@ class WordCountValidator:
             'total_chars': self.converted_stats['total_chars'] - self.original_stats['total_chars']
         }
         
-        # 分析中文字符变化
-        if abs(diffs['chinese_chars']) <= self.original_stats['chinese_chars'] * 0.005:  # 0.5%以内
+        # Analyze Chinese character changes
+        if abs(diffs['chinese_chars']) <= self.original_stats['chinese_chars'] * 0.005:  # Within 0.5%
             analysis['chinese_reason'] = analysis_msgs['chinese_stable']
             analysis['chinese_concern'] = analysis_msgs['concern_levels']['none']
         elif diffs['chinese_chars'] > 0:
@@ -383,8 +383,8 @@ class WordCountValidator:
                 analysis['chinese_reason'] = analysis_msgs['chinese_major_decrease']
                 analysis['chinese_concern'] = analysis_msgs['concern_levels']['high']
         
-        # 分析英文字符变化
-        if abs(diffs['english_chars']) <= max(self.original_stats['english_chars'] * 0.02, 10):  # 2%或10个字符以内
+        # Analyze English character changes
+        if abs(diffs['english_chars']) <= max(self.original_stats['english_chars'] * 0.02, 10):  # Within 2% or 10 characters
             analysis['english_reason'] = analysis_msgs['english_stable']
             analysis['english_concern'] = analysis_msgs['concern_levels']['none']
         elif diffs['english_chars'] > 0:
@@ -399,8 +399,8 @@ class WordCountValidator:
                 analysis['english_reason'] = analysis_msgs['english_major_decrease']
                 analysis['english_concern'] = analysis_msgs['concern_levels']['high']
         
-        # 分析标点符号变化
-        if abs(diffs['punctuation']) <= max(self.original_stats['punctuation'] * 0.1, 5):  # 10%或5个以内
+        # Analyze punctuation changes
+        if abs(diffs['punctuation']) <= max(self.original_stats['punctuation'] * 0.1, 5):  # Within 10% or 5 characters
             analysis['punctuation_reason'] = analysis_msgs['punctuation_stable']
             analysis['punctuation_concern'] = analysis_msgs['concern_levels']['none']
         elif diffs['punctuation'] > 0:
@@ -410,7 +410,7 @@ class WordCountValidator:
             analysis['punctuation_reason'] = analysis_msgs['punctuation_decrease']
             analysis['punctuation_concern'] = analysis_msgs['concern_levels']['minor']
         
-        # 分析总体变化
+        # Analyze overall changes
         total_loss_rate = (self.original_stats['total_chars'] - self.converted_stats['total_chars']) / self.original_stats['total_chars'] * 100
         if total_loss_rate <= 0.5:
             analysis['overall_reason'] = analysis_msgs['overall_excellent']
@@ -429,20 +429,20 @@ class WordCountValidator:
     
     def compare_content(self) -> Tuple[bool, Dict[str, Any]]:
         """
-        对比原始内容和转换后内容的差异
+        Compare differences between original and converted content
         
-        :return: (是否通过验证, 对比结果详情)
+        :return: (validation_passed, comparison_result_details)
         """
         if not self.original_stats or not self.converted_stats:
-            return False, {"error": "缺少统计数据，请先分析原始内容和转换后内容"}
+            return False, {"error": "Missing statistical data, please analyze original and converted content first"}
         
-        # 计算差异
+        # Calculate differences
         chinese_diff = self.converted_stats['chinese_chars'] - self.original_stats['chinese_chars']
         english_diff = self.converted_stats['english_chars'] - self.original_stats['english_chars']
         punctuation_diff = self.converted_stats['punctuation'] - self.original_stats['punctuation']
         total_diff = self.converted_stats['total_chars'] - self.original_stats['total_chars']
         
-        # 计算丢失率
+        # Calculate loss rates
         def calc_loss_rate(original, converted):
             if original == 0:
                 return 0.0
@@ -452,13 +452,13 @@ class WordCountValidator:
         english_loss_rate = calc_loss_rate(self.original_stats['english_chars'], self.converted_stats['english_chars'])
         total_loss_rate = calc_loss_rate(self.original_stats['total_chars'], self.converted_stats['total_chars'])
         
-        # 验证标准：允许少量字符差异（考虑到解析和格式化的影响）
-        # 中文字符丢失率不超过1%，英文字符丢失率不超过2%，总体丢失率不超过1%
+        # Validation criteria: allow minor character differences (considering parsing and formatting effects)
+        # Chinese character loss rate <= 1%, English character loss rate <= 2%, total loss rate <= 1%
         is_valid = (
             chinese_loss_rate <= 1.0 and 
             english_loss_rate <= 2.0 and 
             total_loss_rate <= 1.0 and
-            chinese_diff >= -self.original_stats['chinese_chars'] * 0.01  # 中文字符丢失不超过1%
+            chinese_diff >= -self.original_stats['chinese_chars'] * 0.01  # Chinese character loss <= 1%
         )
         
         result = {
@@ -478,7 +478,7 @@ class WordCountValidator:
             }
         }
         
-        # 记录验证结果
+        # Log validation results
         messages = self.get_messages()
         
         if is_valid:
@@ -514,7 +514,7 @@ class WordCountValidator:
         report.append(f"# {messages['report_title']}")
         report.append("")
         
-        # 使用表格展示转换前后对比
+        # Use table to show before/after comparison
         report.append(f"## {messages['comparison_before_after']}")
         report.append("")
         headers = messages['table_headers']
@@ -538,14 +538,14 @@ class WordCountValidator:
             else:
                 return "0%"
         
-        # 添加表格行
+        # Add table rows
         report.append(f"| {messages['chinese_chars']} | {result['original_stats']['chinese_chars']:,} | {result['converted_stats']['chinese_chars']:,} | {format_diff(diffs['chinese_chars'])} | {format_loss_rate(rates['chinese_chars'])} |")
         report.append(f"| {messages['english_chars']} | {result['original_stats']['english_chars']:,} | {result['converted_stats']['english_chars']:,} | {format_diff(diffs['english_chars'])} | {format_loss_rate(rates['english_chars'])} |")
         report.append(f"| {messages['punctuation']} | {result['original_stats']['punctuation']:,} | {result['converted_stats']['punctuation']:,} | {format_diff(diffs['punctuation'])} | - |")
         report.append(f"| {messages['total_chars_label']} | **{result['original_stats']['total_chars']:,}** | **{result['converted_stats']['total_chars']:,}** | **{format_diff(diffs['total_chars'])}** | **{format_loss_rate(rates['total_chars'])}** |")
         report.append("")
         
-        # 验证结果
+        # Validation result
         if is_valid:
             report.append(f"## {messages['validation_result_pass']}")
             report.append("")
@@ -573,7 +573,7 @@ class WordCountValidator:
         
         report.append("")
         
-        # 差异分析详情表格
+        # Difference analysis details table
         report.append(f"## {messages['analysis_title']}")
         report.append("")
         
@@ -601,24 +601,24 @@ class WordCountValidator:
 
 def validate_conversion_integrity(original_content: str, volumes: List[Volume]) -> Tuple[bool, str]:
     """
-    验证txt转epub的内容完整性
+    Validate content integrity for txt to epub conversion
     
-    :param original_content: 原始txt文件内容
-    :param volumes: 转换后的卷结构
-    :return: (是否通过验证, 验证报告)
+    :param original_content: Original txt file content
+    :param volumes: Converted volume structure
+    :return: (validation_passed, validation_report)
     """
     validator = WordCountValidator()
     
-    # 分析原始内容
+    # Analyze original content
     validator.analyze_original_content(original_content)
     
-    # 分析转换后内容
+    # Analyze converted content
     validator.analyze_converted_content(volumes)
     
-    # 生成验证报告
+    # Generate validation report
     report = validator.generate_validation_report()
     
-    # 获取验证结果
+    # Get validation result
     is_valid, _ = validator.compare_content()
     
     return is_valid, report

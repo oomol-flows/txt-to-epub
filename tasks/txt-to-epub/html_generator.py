@@ -59,13 +59,13 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
             <div style="margin-top: 2rem;">
                 <div style="font-size: 3em; margin-bottom: 1.5rem;">{icon}</div>
                 <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 2rem;">
-                    本{unit_name}包含 {chapter_count} 章内容
+                 This {unit_name} contains the content of {chapter_count} chapter
                 </p>
             </div>
         </div>
         <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
             <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                Powered by oomol.com, Please ensure that the copyright is in compliance
             </p>
         </div>
     </body>
@@ -125,13 +125,13 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                        本章包含 {section_count} 个小节
+                        This chapter contains {section_count} sections
                     </p>
                 </div>
             </div>
             <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
                 <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                       Powered by oomol.com, Please ensure that the copyright is in compliance
                 </p>
             </div>
         </body>
@@ -170,13 +170,13 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                        本章共分为 {section_count} 个小节
+                   This chapter is divided into {section_count} sections
                     </p>
                 </div>
             </div>
             <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
                 <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                        Powered by oomol.com, Please ensure that the copyright is in compliance
                 </p>
             </div>
         </body>
@@ -224,7 +224,7 @@ def create_section_page(section_title: str, section_content: str, file_name: str
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>章节序言</title>
+            <title>Chapter Preface</title>
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
