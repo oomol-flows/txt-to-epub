@@ -3,16 +3,16 @@ from ebooklib import epub
 
 def create_volume_page(volume_title: str, file_name: str, chapter_count: int) -> epub.EpubHtml:
     """
-    创建卷/部/篇的页面，使用现代化设计。
+    Create volume/part/book page with modern design.
     
-    :param volume_title: 卷标题
-    :param file_name: 文件名
-    :param chapter_count: 章节数量
-    :return: EpubHtml对象
+    :param volume_title: Volume title
+    :param file_name: File name
+    :param chapter_count: Chapter count
+    :return: EpubHtml object
     """
     volume_page = epub.EpubHtml(title=volume_title, file_name=file_name, lang='zh')
     
-    # 确定单位名称和装饰图标
+    # Determine unit name and decorative icon
     if "卷" in volume_title:
         unit_name = "卷"
         icon = "📖"
@@ -26,7 +26,7 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
         unit_name = "卷"
         icon = "📖"
     
-    # 创建简洁的卷页面内容
+    # Create concise volume page content
     volume_page.content = f'''
     <!DOCTYPE html>
     <html lang="zh">
@@ -59,13 +59,12 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
             <div style="margin-top: 2rem;">
                 <div style="font-size: 3em; margin-bottom: 1.5rem;">{icon}</div>
                 <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500; margin-bottom: 2rem;">
-                    本{unit_name}包含 {chapter_count} 章内容
                 </p>
             </div>
         </div>
         <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
             <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                Powered by oomol.com, Please ensure that the copyright is in compliance
             </p>
         </div>
     </body>
@@ -78,17 +77,17 @@ def create_volume_page(volume_title: str, file_name: str, chapter_count: int) ->
 
 def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str, section_count: int) -> epub.EpubHtml:
     """
-    创建章节页面（用于有小节的章节），使用现代化设计。
+    Create chapter page (for chapters with sections) with modern design.
     
-    :param chapter_title: 章节标题
-    :param chapter_content: 章节内容（通常为空，因为内容在小节中）
-    :param file_name: 文件名
-    :param section_count: 小节数量
-    :return: EpubHtml对象
+    :param chapter_title: Chapter title
+    :param chapter_content: Chapter content (usually empty, as content is in sections)
+    :param file_name: File name
+    :param section_count: Section count
+    :return: EpubHtml object
     """
     chapter_page = epub.EpubHtml(title=chapter_title, file_name=file_name, lang='zh')
     
-    # 创建优雅的章节页面内容
+    # Create elegant chapter page content
     if chapter_content.strip():
         chapter_page.content = f'''
         <!DOCTYPE html>
@@ -125,13 +124,12 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                        本章包含 {section_count} 个小节
                     </p>
                 </div>
             </div>
             <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
                 <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                       Powered by oomol.com, Please ensure that the copyright is in compliance
                 </p>
             </div>
         </body>
@@ -170,13 +168,12 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
                 <div style="margin-top: 2rem;">
                     <div style="font-size: 3em; margin-bottom: 1.5rem;">📚</div>
                     <p style="color: #2c3e50; font-size: 1.3em; font-weight: 500;">
-                        本章共分为 {section_count} 个小节
                     </p>
                 </div>
             </div>
             <div style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 100%;">
                 <p style="color: #95a5a6; font-size: 0.8em; text-align: center;">
-                    oomol.com 开源工作组提供格式转换工具，请用户确保版权合规
+                        Powered by oomol.com, Please ensure that the copyright is in compliance
                 </p>
             </div>
         </body>
@@ -189,12 +186,12 @@ def create_chapter_page(chapter_title: str, chapter_content: str, file_name: str
 
 def create_section_page(section_title: str, section_content: str, file_name: str) -> epub.EpubHtml:
     """
-    创建节页面，使用现代化设计。
+    Create section page with modern design.
     
-    :param section_title: 节标题
-    :param section_content: 节内容
-    :param file_name: 文件名
-    :return: EpubHtml对象
+    :param section_title: Section title
+    :param section_content: Section content
+    :param file_name: File name
+    :return: EpubHtml object
     """
     section_page = epub.EpubHtml(title=section_title, file_name=file_name, lang='zh')
     
@@ -217,14 +214,14 @@ def create_section_page(section_title: str, section_content: str, file_name: str
         </html>
         '''
     else:
-        # 无标题的节（章节序言）
+        # Untitled section (chapter preface)
         section_page.content = f'''
         <!DOCTYPE html>
         <html lang="zh">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>章节序言</title>
+            <title>Chapter Preface</title>
             <link rel="stylesheet" type="text/css" href="style/nav.css"/>
         </head>
         <body class="chinese-text">
@@ -241,7 +238,7 @@ def create_section_page(section_title: str, section_content: str, file_name: str
 
 def create_chapter(title: str, content: str, file_name: str) -> epub.EpubHtml:
     """
-    创建EPUB章节，使用现代化设计。
+    Create EPUB chapter with modern design.
     """
     chapter = epub.EpubHtml(title=title, file_name=file_name, lang='zh')
     

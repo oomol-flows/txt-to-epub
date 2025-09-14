@@ -1,11 +1,12 @@
-version: 0.0.11
+version: 0.0.12
 scripts:
   bootstrap: |
     npm install
     poetry install --no-root
 icon: "./icon.png"
 name: txt-to-epub
-description: txt to epub
+description: A tool for converting TXT format text files to EPUB eBooks with
+  elegant typography design.
 displayName: Txt To Epub
 releaseNotes: add report
 repository: https://github.com/oomol-flows/txt-to-epub

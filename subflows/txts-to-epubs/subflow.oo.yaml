@@ -71,8 +71,9 @@ nodes:
       - handle: filt_hide
         value: true
     task: oomol-file::filter_files
-description: 本模块作用是将一个文件夹中的书籍的 txt 文件全都转为 epub
-  格式。输入一个文件夹地址，一个转化后的存储文件夹地址。给用户返回一个 epub 文件列表。其他如书名，作者，封面为选填
+description: This module converts all txt book files in a folder to epub format.
+  Input a folder path and a storage folder path for the converted files. Returns
+  a list of epub files to the user. Book title, author, and cover are optional.
 inputs_def:
   - handle: folder
     description: Input
