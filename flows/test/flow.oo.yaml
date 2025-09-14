@@ -3,7 +3,7 @@ nodes:
     title: "Txt To Epub #1"
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/oomol-storage/book/《明朝那些事儿》.txt
+        value: /oomol-driver/oomol-storage/book/伯特兰·罗素：哲学问题.txt
       - handle: book_title
         value: null
       - handle: author
@@ -13,3 +13,15 @@ nodes:
       - handle: epub_dir
         value: /oomol-driver/oomol-storage/book
     task: self::txt-to-epub
+  - node_id: txts-to-epubs#1
+    title: "Txts To Epubs #1"
+    inputs_from:
+      - handle: folder
+      - handle: epub_dir
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+    subflow: self::txts-to-epubs
