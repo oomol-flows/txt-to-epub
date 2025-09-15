@@ -1,149 +1,114 @@
-# TXT to EPUB Converter - Elegant Style Edition
+# TXT to EPUB Converter
 
-A tool for converting TXT format text files to EPUB eBooks with elegant typography design.
+A powerful and elegant tool for converting text files to beautifully formatted EPUB eBooks. Perfect for publishers, writers, and readers who want to transform plain text documents into professional-quality digital books.
 
-## Key Features
+## 📚 What This Tool Does
 
-### 🎨 Elegant Style Design
-Inspired by professional typography styles from multi-platform e-readers, providing:
+This project provides an easy-to-use system for converting text files (.txt) into EPUB format eBooks with professional typography and styling. Whether you have a single book or a collection of texts, this tool can help you create elegant digital books that look great on any eReader.
 
-- **Hierarchical Title System**
-  - Volume/Part/Book titles: Using XiaoBiaoSong font with decorative lines and gradient effects
-  - Chapter titles: Center-aligned with bottom decorative symbols
-  - Section titles: Left colored border with gradient background effects
+## ✨ Key Features
 
-- **Elegant Font Combinations**
-  - Body text: Song family fonts (DK-SONGTI, FangZheng Song San, FangZheng Shu Song, etc.)
-  - Titles: XiaoBiaoSong fonts (DK-XIAOBIAOSONG, FangZheng XiaoBiaoSong, etc.)
-  - Emphasis: Hei family fonts (DK-HEITI, FangZheng LanTing Hei, etc.)
-  - Quotes: Kai family fonts (DK-KAITI, FangZheng Kai, HuaWen Kai, etc.)
+### 🎨 Professional Typography
+- **Beautiful Chinese fonts**: Carefully selected font families including Song, Hei, Kai, and XiaoBiaoSong
+- **Elegant styling**: Professional color schemes and typography inspired by leading eReader platforms
+- **Multi-level formatting**: Automatic detection and styling of volumes, chapters, and sections
+- **Responsive design**: Optimized for different screen sizes and devices
 
-- **Professional Color Scheme**
-  - Primary color: #91531d (warm brown)
-  - Chapter titles: #1f4a92 (deep blue)
-  - Section titles: #478686 (teal green)
-  - Body text: #2c2c2c (dark gray)
+### 🤖 Smart Text Processing
+- **Intelligent structure detection**: Automatically identifies book hierarchy (Volume → Chapter → Section)
+- **Flexible title formats**: Supports both numeric (Chapter 1) and Chinese numerals (第一章)
+- **Multiple encoding support**: Handles GB18030, GBK, UTF-8, and other Chinese text encodings
+- **Error-free processing**: Robust handling of various text formats and edge cases
 
-- **Exquisite Visual Elements**
-  - Decorative dividers and symbols
-  - Gradient backgrounds and shadow effects
-  - Responsive design for different screen sizes
-  - Optimized Chinese typography
+### 📖 Easy to Use
+- **Single file conversion**: Convert one text file to EPUB
+- **Batch processing**: Convert entire folders of text files at once
+- **Optional customization**: Add book titles, author names, and cover images
+- **Drag-and-drop interface**: Simple visual workflow for non-technical users
 
-### 📚 Intelligent Text Parsing
-- **Three-level hierarchy**: Auto-detect Volume/Part/Book → Chapter → Section
-- **Flexible title formats**: Support numeric and Chinese numerals (including traditional)
-- **Smart encoding detection**: Auto-handle GB18030, GBK, UTF-8 and other encodings
+## 🛠️ Available Tools (Blocks)
 
-### 🛠️ Usage
+### 1. TXT to EPUB Converter
+**Purpose**: Convert a single text file to EPUB format
 
-#### Basic Usage
-```python
-from tasks.txt_to_epub import txt_to_epub
+**What you need to provide**:
+- Text file (.txt) - your book content
+- Output folder - where to save the EPUB file
+- Book title (optional) - will be extracted from content if not provided
+- Author name (optional) - for book metadata
+- Cover image (optional) - for book cover
 
-txt_to_epub(
-    txt_file="input.txt",
-    epub_file="output.epub",
-    title="My Book",
-    author="Author Name",
-    cover_image="cover.jpg"  # optional
-)
-```
+**What you get**:
+- Professional EPUB file ready for any eReader
 
-#### As Workflow Task
-```python
-from tasks.txt_to_epub import main
-from oocana import Context
+### 2. Batch TXT to EPUB Converter
+**Purpose**: Convert multiple text files from a folder to EPUB format
 
-params = {
-    'txt_file': 'input.txt',
-    'epub_dir': 'output/',
-    'book_title': 'My Book',      # optional
-    'author': 'Author Name',      # optional
-    'cover_image': 'cover.jpg'    # optional
-}
+**What you need to provide**:
+- Input folder - containing your .txt files
+- Output folder - where to save all EPUB files
+- Book title template (optional) - for consistent naming
+- Author name (optional) - applied to all books
+- Cover image (optional) - used for all books
 
-result = main(params, Context())
-```
+**What you get**:
+- Multiple EPUB files, one for each text file in your folder
 
-### 📖 Supported Text Formats
+## 🎯 Perfect For
 
-#### Title Recognition Patterns
-- **Volume-level titles**: Volume One/Part One/Book One + title
-- **Chapter-level titles**: Chapter One + title
-- **Section-level titles**: Section One + title
+- **Publishers**: Converting manuscript collections to digital format
+- **Writers**: Self-publishing novels, stories, or non-fiction works
+- **Librarians**: Digitizing text archives and historical documents
+- **Educators**: Creating course materials and reading collections
+- **Book lovers**: Converting personal text collections to eBook format
+- **Translators**: Publishing translated works in professional format
 
-#### Example Text Structure
-```
-Volume One: Opening Chapter
+## 🌟 Why Choose This Tool
 
-Chapter 1: Beginning
-This is chapter content...
+### Professional Quality Results
+Unlike simple converters, this tool creates EPUBs with:
+- Publisher-grade typography and styling
+- Proper book structure and navigation
+- Optimized reading experience across devices
+- Standards-compliant EPUB 3.0 format
 
-Section 1: Character Introduction
-This is section content...
+### User-Friendly Design
+- No technical knowledge required
+- Visual workflow interface
+- Batch processing capabilities
+- Comprehensive error handling
 
-Section 2: Background Setting
-This is another section's content...
+### Flexible and Customizable
+- Works with various text encodings
+- Supports different title formats
+- Optional metadata customization
+- Scalable from single files to large collections
 
-Chapter 2: Development
-This is chapter content without subsections...
-```
+## 🚀 Getting Started
 
-### 🎨 Style Features
+1. **Prepare your text files**: Ensure your .txt files have clear chapter/section structure
+2. **Choose your conversion type**: Single file or batch processing
+3. **Set your preferences**: Add titles, authors, and cover images as desired
+4. **Run the conversion**: Watch as professional EPUBs are created
+5. **Enjoy your eBooks**: Transfer to any eReader or reading app
 
-#### Volume Title Style
-- XiaoBiaoSong font, 2.4em size
-- Warm brown theme (#91531d)
-- Bottom decorative lines with gradient effects
-- Center-aligned with ample top and bottom margins
+## 📱 Output Compatibility
 
-#### Chapter Title Style
-- XiaoBiaoSong font, 2em size
-- Deep blue theme (#1f4a92)
-- Bottom border line with decorative symbols
-- Center-aligned with elegant spacing
+Generated EPUB files work perfectly with:
+- Kindle (after conversion)
+- Apple Books
+- Google Play Books
+- Adobe Digital Editions
+- Calibre
+- Most mobile reading apps
 
-#### Section Title Style
-- Hei font, 1.4em size
-- Teal green theme (#478686)
-- Left colored border with gradient background
-- Left-aligned with prefix decorative symbols
+## 🎨 Style Examples
 
-#### Body Text Style
-- Song font 16px, line height 1.8
-- First line indent 2 characters
-- Justified alignment with optimized spacing
-- Dark gray text (#2c2c2c)
+The tool creates books with elegant formatting including:
+- **Volume titles**: Large, centered with decorative elements
+- **Chapter headers**: Professional styling with borders and symbols
+- **Section breaks**: Clear visual separation with colored accents
+- **Body text**: Optimized line spacing and justified alignment
+- **Responsive layout**: Adapts to different screen sizes
 
-### 📱 Responsive Design
-- Tablet device adaptation (below 768px)
-- Mobile device adaptation (below 480px)
-- Print style optimization
-- Chinese typography optimization
-
-### 🔧 Technical Features
-- **Auto encoding detection**: Support GB18030, GBK, UTF-8, etc.
-- **Error handling**: Comprehensive exception handling and logging
-- **Memory optimization**: Efficient text processing and EPUB generation
-- **Standard compliance**: Compliant with EPUB 3.0 standard
-
-### 📦 Dependencies
-```
-EbookLib==0.18
-chardet==5.2.0
-```
-
-### 🚀 Quick Test
-Run test script to generate sample EPUB:
-```bash
-python test_epub_generation.py
-```
-
-### 💡 Style Inspiration
-The style design of this tool is inspired by:
-- [DuoKan Reader's CSS templates](https://github.com/Eninix/sigil-template)
-- Professional publishing typography standards
-- Modern eBook visual design trends
-
-Generated EPUB files will display optimal visual effects on CSS-supporting readers, especially in applications that support DuoKan format like Xiaomi Reader.
+Transform your plain text files into beautiful, professional eBooks that readers will love!
