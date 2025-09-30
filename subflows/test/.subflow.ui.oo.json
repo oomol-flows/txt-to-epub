@@ -1,0 +1,79 @@
+{
+  "nodes": {
+    "txt-to-epub#1": {
+      "contentWidth": 633.763148629077,
+      "rfNode": {
+        "position": {
+          "x": 2460,
+          "y": 0
+        }
+      }
+    },
+    "txt-first-800-chars#1": {
+      "rfNode": {
+        "position": {
+          "x": 486,
+          "y": 368.75
+        }
+      }
+    },
+    "llm#1": {
+      "rfNode": {
+        "position": {
+          "x": 972,
+          "y": 109.75
+        }
+      },
+      "sections": {
+        "inputs": {
+          "groupCollapsed": {
+            "Connection": true
+          }
+        }
+      }
+    },
+    "get_book_info#1": {
+      "contentWidth": 450,
+      "rfNode": {
+        "position": {
+          "x": 1458,
+          "y": 301.25
+        }
+      }
+    },
+    "url2file#1": {
+      "rfNode": {
+        "position": {
+          "x": 1974,
+          "y": 424.5
+        }
+      },
+      "sections": {
+        "inputs": {
+          "groupCollapsed": {
+            "Strategy": true,
+            "Connection": true
+          }
+        }
+      }
+    }
+  },
+  "pseudoNodes": {
+    "input": {
+      "rfNode": {
+        "position": {
+          "x": 0,
+          "y": 215
+        }
+      }
+    },
+    "output": {
+      "rfNode": {
+        "position": {
+          "x": 3160,
+          "y": 238.5
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+inputs_def:
+  - handle: txt_file
+    description: "Input txt file"
+    json_schema:
+      type: string
+      ui:widget: file
+    nullable: false
+
+outputs_def:
+  - handle: first_800_chars
+    description: "First 800 characters from the txt file"
+    json_schema:
+      type: string
+  - handle: filename
+    description: "Name of the input file"
+    json_schema:
+      type: string
+
+executor:
+  name: python
+  options:
+    entry: __init__.py
+    spawn: false
+
+title: "Extract First 800 Characters"
+icon: ":carbon:text-creation:"
+description: "Extract the first 800 characters from a txt file"

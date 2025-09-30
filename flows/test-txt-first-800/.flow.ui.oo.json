@@ -1,0 +1,29 @@
+{
+  "nodes": {
+    "extract#1": {
+      "rfNode": {
+        "position": {
+          "x": -357.8439367304889,
+          "y": 10.480784757796744
+        }
+      }
+    },
+    "txt-to-epub#1": {
+      "contentWidth": 450,
+      "rfNode": {
+        "position": {
+          "x": 347,
+          "y": -21
+        }
+      }
+    },
+    "test#1": {
+      "rfNode": {
+        "position": {
+          "x": -3.5,
+          "y": 441.5
+        }
+      }
+    }
+  }
+}

@@ -12,3 +12,6 @@ repository: https://github.com/oomol-flows/txt-to-epub
 dependencies:
   array: 0.1.5
   oomol-file: 0.0.20
+  llm: 0.3.5
+  get-book-info: 0.0.2
+  downloader: 0.0.6

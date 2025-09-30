@@ -1,0 +1,174 @@
+nodes:
+  - node_id: txt-to-epub#1
+    title: "Txt To Epub #1"
+    inputs_from:
+      - handle: txt_file
+        value: /oomol-driver/oomol-storage/book/伯特兰·罗素：哲学问题.txt
+        from_flow:
+          - input_handle: txt_file
+      - handle: book_title
+        value: null
+        from_node:
+          - node_id: get_book_info#1
+            output_handle: title
+      - handle: author
+        value: null
+        from_node:
+          - node_id: get_book_info#1
+            output_handle: author
+      - handle: cover_image
+        value: null
+        from_node:
+          - node_id: url2file#1
+            output_handle: file
+      - handle: epub_dir
+        value: /oomol-driver/oomol-storage/book
+        from_flow:
+          - input_handle: epub_dir
+    task: self::txt-to-epub
+  - node_id: txt-first-800-chars#1
+    title: "Extract First 800 Characters #1"
+    inputs_from:
+      - handle: txt_file
+        from_flow:
+          - input_handle: txt_file
+    task: self::txt-first-800-chars
+  - node_id: llm#1
+    title: "LLM #1"
+    inputs_from:
+      - handle: messages
+        value: null
+      - handle: timeout
+        value: 30
+      - handle: retry_times
+        value: 0
+      - handle: retry_sleep
+        value: 3.5
+      - handle: model
+        value:
+          model: deepseek-chat
+          temperature: 0.5
+          top_p: 1
+          max_tokens: 8192
+      - handle: template
+        value:
+          - role: user
+            content: "{{filename}} 是这本书的文件名。以下是一本书的文件前 800
+              个字，你需要这个内容中获取书名和作者名字，使用和书本一样的语言。  800 字内容如下：{{first_800_chars}}"
+        schema_overrides:
+          - schema:
+              type: array
+      - handle: skills
+        value:
+          []
+      - handle: stream
+        value: true
+      - handle: first_800_chars
+        value: hello!
+        from_node:
+          - node_id: txt-first-800-chars#1
+            output_handle: first_800_chars
+      - handle: filename
+        from_node:
+          - node_id: txt-first-800-chars#1
+            output_handle: filename
+    task: llm::llm
+    inputs_def:
+      - handle: first_800_chars
+        json_schema:
+          type: string
+          ui:widget: text
+        value: hello!
+      - handle: filename
+        json_schema:
+          type: string
+        nullable: false
+        description: Name of the input file
+    outputs_def:
+      - handle: book_title
+        description: write your answer here
+        json_schema:
+          type: string
+      - handle: author
+        json_schema:
+          type: string
+  - node_id: get_book_info#1
+    title: "Get Book Info #1"
+    inputs_from:
+      - handle: title
+        from_node:
+          - node_id: llm#1
+            output_handle: book_title
+      - handle: author
+        value: null
+        from_node:
+          - node_id: llm#1
+            output_handle: author
+    task: get-book-info::get_book_info
+  - node_id: url2file#1
+    title: "URL to file #1"
+    inputs_from:
+      - handle: url
+        from_node:
+          - node_id: get_book_info#1
+            output_handle: cover_url
+      - handle: saved_folder
+        value: null
+      - handle: ensure_folder
+        value: false
+      - handle: file_head
+        value: null
+      - handle: if_existing
+        value: override
+      - handle: threads_count
+        value: 1
+      - handle: headers
+        value:
+          {}
+      - handle: cookies
+        value:
+          {}
+      - handle: window_width
+        value: 7
+      - handle: failure_ladder
+        value:
+          - 5
+      - handle: min_segment_length
+        value: 1048576
+      - handle: once_fetch_size
+        value: 16384
+      - handle: timeout
+        value: 30
+      - handle: retry_times
+        value: 0
+      - handle: retry_sleep
+        value: 0
+    subflow: downloader::url2file
+inputs_def:
+  - handle: txt_file
+    json_schema:
+      type: string
+      ui:widget: file
+    nullable: false
+    description: Input txt file
+    executor_name: python
+  - handle: epub_dir
+    json_schema:
+      type: string
+      ui:widget: dir
+    nullable: false
+    value: /oomol-driver/oomol-storage/book
+    executor_name: python
+outputs_def:
+  - handle: epub_file
+    json_schema:
+      type: string
+      ui:widget: file
+    nullable: false
+    description: Output
+    executor_name: python
+outputs_from:
+  - handle: epub_file
+    from_node:
+      - node_id: txt-to-epub#1
+        output_handle: epub_file
