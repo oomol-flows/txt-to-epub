@@ -8,24 +8,30 @@ nodes:
           - input_handle: txt_file
       - handle: book_title
         value: null
+        from_flow:
+          []
         from_node:
           - node_id: get_book_info#1
             output_handle: title
       - handle: author
         value: null
+        from_flow:
+          []
         from_node:
           - node_id: get_book_info#1
             output_handle: author
       - handle: cover_image
         value: null
+        from_flow:
+          []
         from_node:
-          - node_id: url2file#1
-            output_handle: file
+          - node_id: +python#1
+            output_handle: cover_image
       - handle: epub_dir
         value: /oomol-driver/oomol-storage/book
         from_flow:
           - input_handle: epub_dir
-    task: self::txt-to-epub
+    task: self::txt-to-epub-core
   - node_id: txt-first-800-chars#1
     title: "Extract First 800 Characters #1"
     inputs_from:
@@ -53,8 +59,10 @@ nodes:
       - handle: template
         value:
           - role: user
-            content: "{{filename}} 是这本书的文件名。以下是一本书的文件前 800
-              个字，你需要这个内容中获取书名和作者名字，使用和书本一样的语言。  800 字内容如下：{{first_800_chars}}"
+            content: "任务书籍信息判断，{{book_title}} 和 {{author}} 不为空，就直接使用。为空那么使用一下方式判断：
+
+              {{filename}} 是这本书的文件名。{{first_800_chars}}是一本书的文件前
+              800 个字，你需要这个内容中获取书名和作者名字，使用和书本一样的语言。  "
         schema_overrides:
           - schema:
               type: array
@@ -72,6 +80,14 @@ nodes:
         from_node:
           - node_id: txt-first-800-chars#1
             output_handle: filename
+      - handle: book_title
+        value:
+        from_flow:
+          - input_handle: book_title
+      - handle: author
+        value:
+        from_flow:
+          - input_handle: author
     task: llm::llm
     inputs_def:
       - handle: first_800_chars
@@ -80,10 +96,18 @@ nodes:
           ui:widget: text
         value: hello!
       - handle: filename
+        description: Name of the input file
         json_schema:
           type: string
         nullable: false
-        description: Name of the input file
+      - handle: book_title
+        json_schema:
+          type: string
+        nullable: true
+      - handle: author
+        json_schema:
+          type: string
+        nullable: true
     outputs_def:
       - handle: book_title
         description: write your answer here
@@ -144,20 +168,77 @@ nodes:
       - handle: retry_sleep
         value: 0
     subflow: downloader::url2file
+  - node_id: +python#1
+    title: "Python #1"
+    icon: ":logos:python:"
+    task:
+      ui:
+        default_width: 450
+      inputs_def:
+        - handle: cover_image
+          json_schema:
+            type: string
+            ui:widget: file
+          nullable: true
+        - handle: download_cover
+          json_schema:
+            type: string
+            ui:widget: save
+          nullable: true
+          description: Path of the downloaded file
+      outputs_def:
+        - handle: cover_image
+          json_schema:
+            type: string
+            ui:widget: file
+          nullable: true
+      executor:
+        name: python
+        options:
+          entry: scriptlets/+scriptlet#1.py
+    inputs_from:
+      - handle: download_cover
+        from_node:
+          - node_id: url2file#1
+            output_handle: file
+        value:
+      - handle: cover_image
+        value:
+        from_flow:
+          - input_handle: cover_image
 inputs_def:
   - handle: txt_file
+    description: Input txt file
     json_schema:
       type: string
       ui:widget: file
     nullable: false
-    description: Input txt file
     executor_name: python
   - handle: epub_dir
     json_schema:
       type: string
       ui:widget: dir
-    nullable: false
     value: /oomol-driver/oomol-storage/book
+    nullable: false
+    executor_name: python
+  - handle: book_title
+    json_schema:
+      type: string
+    nullable: true
+    value:
+    executor_name: python
+  - handle: author
+    json_schema:
+      type: string
+    nullable: true
+    value:
+    executor_name: python
+  - handle: cover_image
+    json_schema:
+      type: string
+      ui:widget: file
+    nullable: true
+    value:
     executor_name: python
 outputs_def:
   - handle: epub_file
@@ -172,3 +253,4 @@ outputs_from:
     from_node:
       - node_id: txt-to-epub#1
         output_handle: epub_file
+title: Txt To Epub

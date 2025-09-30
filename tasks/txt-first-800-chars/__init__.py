@@ -3,8 +3,8 @@ import typing
 class Inputs(typing.TypedDict):
     txt_file: str
 class Outputs(typing.TypedDict):
-    first_800_chars: str
-    filename: str
+    first_800_chars: typing.NotRequired[str]
+    filename: typing.NotRequired[str]
 #endregion
 
 from oocana import Context

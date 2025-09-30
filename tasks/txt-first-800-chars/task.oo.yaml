@@ -25,3 +25,4 @@ executor:
 title: "Extract First 800 Characters"
 icon: ":carbon:text-creation:"
 description: "Extract the first 800 characters from a txt file"
+private: true

@@ -37,7 +37,7 @@ executor:
   options:
     spawn: false
     entry: __init__.py
-title: Txt To Epub
+title: Txt To Epub Core
 icon: ":twemoji:blue-book:"
 applet: true
 description: This module converts txt book files to epub format. Input a txt

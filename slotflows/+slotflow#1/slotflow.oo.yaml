@@ -20,7 +20,7 @@ nodes:
       - handle: epub_dir
         from_flow:
           - input_handle: epub_dir
-    task: self::txt-to-epub
+    task: self::txt-to-epub-core
 outputs_from:
   - handle: item
     from_node:
