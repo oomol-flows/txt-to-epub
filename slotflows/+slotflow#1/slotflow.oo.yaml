@@ -5,6 +5,10 @@ nodes:
       - handle: txt_file
         from_flow:
           - input_handle: item
+      - handle: epub_dir
+        value: /oomol-driver/oomol-storage/book
+        from_flow:
+          - input_handle: epub_dir
       - handle: book_title
         value: null
         from_flow:
@@ -17,10 +21,7 @@ nodes:
         value: null
         from_flow:
           - input_handle: cover_image
-      - handle: epub_dir
-        from_flow:
-          - input_handle: epub_dir
-    task: self::txt-to-epub-core
+    subflow: self::txt-to-epub
 outputs_from:
   - handle: item
     from_node:

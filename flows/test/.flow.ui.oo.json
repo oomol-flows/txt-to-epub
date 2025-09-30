@@ -1,13 +1,5 @@
 {
   "nodes": {
-    "extract#1": {
-      "rfNode": {
-        "position": {
-          "x": -357.8439367304889,
-          "y": 10.480784757796744
-        }
-      }
-    },
     "test#2": {
       "rfNode": {
         "position": {

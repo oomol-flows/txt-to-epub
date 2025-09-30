@@ -1,10 +1,5 @@
-title: Test Extract First 800 Characters
+title: Test
 nodes:
-  - node_id: extract#1
-    task: self::txt-first-800-chars
-    inputs_from:
-      - handle: txt_file
-        value: "/oomol-driver/oomol-storage/test.txt"
   - node_id: test#2
     inputs_from:
       - handle: txt_file

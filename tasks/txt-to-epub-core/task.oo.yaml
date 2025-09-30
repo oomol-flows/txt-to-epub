@@ -43,3 +43,4 @@ applet: true
 description: This module converts txt book files to epub format. Input a txt
   file path and a storage path for the converted file. Returns an epub file to
   the user. Book title, author, and cover are optional.
+private: true
