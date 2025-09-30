@@ -11,7 +11,7 @@ class Inputs(typing.TypedDict):
     author: str | None
     cover_image: str | None
 class Outputs(typing.TypedDict):
-    epub_file: str
+    epub_file: typing.NotRequired[str]
 #endregion
  
 # Import core conversion functionality
