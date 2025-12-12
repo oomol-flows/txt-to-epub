@@ -3,7 +3,6 @@ nodes:
   - node_id: test#2
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/desktop/书/The_Red_and_the_Black-Stendhal.txt
       - handle: epub_dir
         value: /oomol-driver/oomol-storage/book
       - handle: book_title

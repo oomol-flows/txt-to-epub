@@ -1,6 +1,11 @@
 import re
-from typing import List
+import logging
+from typing import List, Optional
 from data_structures import Section, Chapter, Volume
+from parser_config import ParserConfig, DEFAULT_CONFIG
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class ChinesePatterns:
@@ -63,31 +68,108 @@ class EnglishPatterns:
 def detect_language(content: str) -> str:
     """
     Detect the main language of the text (Chinese or English)
-    
+
     :param content: Text content
     :return: 'chinese' or 'english'
     """
     if not content or not content.strip():
         return 'chinese'  # Default to Chinese
-    
+
     # Count Chinese characters
     chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', content))
     # Count English letters
     english_chars = len(re.findall(r'[a-zA-Z]', content))
-    
+
     # Check common Chinese chapter keywords
     chinese_keywords = ['第', '章', '节', '卷', '部', '篇', '序言', '前言', '目录']
     chinese_keyword_count = sum(content.count(kw) for kw in chinese_keywords)
-    
+
     # Check common English chapter keywords
     english_keywords = ['Chapter', 'Section', 'Part', 'Book', 'Volume', 'Contents', 'Preface', 'Introduction']
     english_keyword_count = sum(content.lower().count(kw.lower()) for kw in english_keywords)
-    
+
     # Decision logic
     if chinese_chars > english_chars * 0.5 or chinese_keyword_count > english_keyword_count:
         return 'chinese'
     else:
         return 'english'
+
+
+def is_valid_chapter_title(match, content: str, language: str = 'chinese') -> bool:
+    """
+    Validate if a regex match is a genuine chapter title, not an inline reference.
+
+    :param match: Regex match object
+    :param content: Full text content
+    :param language: Language type, 'chinese' or 'english'
+    :return: True if valid chapter title, False if likely a reference
+    """
+    match_text = match.group(0).strip()
+    match_start = match.start()
+    match_end = match.end()
+
+    # 1. Check if title is too long (likely not a real chapter title)
+    if len(match_text) > 100:
+        logger.debug(f"Rejected chapter title (too long): {match_text[:50]}...")
+        return False
+
+    # 2. Check context before the match
+    context_before_start = max(0, match_start - 50)
+    context_before = content[context_before_start:match_start]
+
+    # Check if it's in the middle of a sentence (preceded by comma, etc.)
+    if language == 'chinese':
+        # Chinese: check for patterns like "在第X章", "如第X章", "见第X章"
+        if re.search(r'[在如见到自从正前后于从到至]第.{0,5}章', context_before[-20:] + match_text[:10]):
+            logger.debug(f"Rejected chapter title (inline reference): {match_text}")
+            return False
+
+        # Check if preceded by punctuation that suggests inline reference
+        if re.search(r'[，,、；;]第.{0,5}章', context_before[-10:] + match_text[:10]):
+            logger.debug(f"Rejected chapter title (after punctuation): {match_text}")
+            return False
+    else:
+        # English: check for patterns like "in Chapter X", "see Chapter X"
+        if re.search(r'(?:in|see|from|at|to|of|for)\s+Chapter\s+\w+', context_before[-30:] + match_text[:20], re.IGNORECASE):
+            logger.debug(f"Rejected chapter title (inline reference): {match_text}")
+            return False
+
+    # 3. Check context after the match
+    context_after_end = min(len(content), match_end + 50)
+    context_after = content[match_end:context_after_end]
+
+    if language == 'chinese':
+        # Check for continuation phrases like "结束时", "中", "里"
+        if re.match(r'^\s*[结结束时中里]', context_after):
+            logger.debug(f"Rejected chapter title (continuation): {match_text}")
+            return False
+
+        # Check if followed by comma (inline reference pattern)
+        if re.match(r'^\s*[，,]', context_after):
+            logger.debug(f"Rejected chapter title (followed by comma): {match_text}")
+            return False
+    else:
+        # English: check for continuation like "ends", "of the book"
+        if re.match(r'^\s*(?:ends?|of|in|at)\s', context_after, re.IGNORECASE):
+            logger.debug(f"Rejected chapter title (continuation): {match_text}")
+            return False
+
+    # 4. Check if the match is at the beginning of a line (real chapter titles usually are)
+    # Allow some whitespace before the match
+    line_start = content.rfind('\n', 0, match_start)
+    if line_start == -1:
+        line_start = 0
+    else:
+        line_start += 1
+
+    text_before_match = content[line_start:match_start]
+    if text_before_match.strip():  # Non-whitespace characters before match on same line
+        # There's text before the chapter marker on the same line
+        # This suggests it's not a standalone chapter title
+        logger.debug(f"Rejected chapter title (not at line start): {match_text}")
+        return False
+
+    return True
 
 
 def remove_table_of_contents(content: str, language: str = None) -> str:
@@ -198,75 +280,93 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
     return content
 
 
-def parse_hierarchical_content(content: str) -> List[Volume]:
+def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None) -> List[Volume]:
     """
     Split text content into three-level hierarchical structure: volumes, chapters, sections.
     Supports both Chinese and English book formats.
+    Optimized version using finditer() for better performance.
 
     :param content: Text content
+    :param config: Parser configuration (optional, uses default if None)
     :return: List of volumes containing complete hierarchical structure
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     if not content or not content.strip():
         # If content is empty, return a volume with empty chapter
         return [Volume(title=None, chapters=[Chapter(title="Empty Content", content="This document is empty or cannot be parsed.", sections=[])])]
-    
+
     # Detect language
     language = detect_language(content)
-    
+
     # Preprocessing: remove table of contents to avoid interference with content parsing
     content = remove_table_of_contents(content, language)
-    
+
     # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
         volume_pattern = patterns.VOLUME_PATTERN
     else:
-        patterns = ChinesePatterns() 
+        patterns = ChinesePatterns()
         volume_pattern = patterns.VOLUME_PATTERN
-    
-    # First split by volumes
-    volume_parts = volume_pattern.split(content)
-    
+
+    # Optimized: Use finditer() instead of split() for better performance
+    volume_matches = list(volume_pattern.finditer(content))
+
     volumes = []
-    
-    if len(volume_parts) == 1:
+
+    if not volume_matches:
         # No volumes, only chapters
-        chapters = parse_chapters_from_content(volume_parts[0], language)
+        chapters = parse_chapters_from_content(content, language, config)
+        # Validate and merge short chapters if enabled
+        if config.enable_length_validation:
+            chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
         if chapters:
             volumes.append(Volume(title=None, chapters=chapters))
         else:
             # If no chapters detected, treat entire content as one chapter
             default_title = "正文" if language == 'chinese' else "Content"
-            volumes.append(Volume(title=None, chapters=[Chapter(title=default_title, content=volume_parts[0].strip(), sections=[])]))
+            volumes.append(Volume(title=None, chapters=[Chapter(title=default_title, content=content.strip(), sections=[])]))
     else:
         # Handle first part (possibly preface, content without volume title)
-        if volume_parts[0].strip():
-            pre_chapters = parse_chapters_from_content(volume_parts[0], language)
+        first_volume_start = volume_matches[0].start()
+        if first_volume_start > 0 and content[:first_volume_start].strip():
+            pre_content = content[:first_volume_start]
+            pre_chapters = parse_chapters_from_content(pre_content, language, config)
+            # Validate and merge short chapters if enabled
+            if config.enable_length_validation:
+                pre_chapters = validate_and_merge_chapters(pre_chapters, language, config.min_chapter_length)
             if pre_chapters:
                 volumes.append(Volume(title=None, chapters=pre_chapters))
             else:
                 # If first part has no chapter structure, treat as preface chapter
                 preface_title = "序言" if language == 'chinese' else "Preface"
-                volumes.append(Volume(title=None, chapters=[Chapter(title=preface_title, content=volume_parts[0].strip(), sections=[])]))
-        
-        # Handle parts with volume titles, step depends on regex group count
-        step = 3 if language == 'chinese' else 2  # English mode has fewer groups
+                volumes.append(Volume(title=None, chapters=[Chapter(title=preface_title, content=pre_content.strip(), sections=[])]))
+
+        # Handle parts with volume titles
         seen_volume_titles = set()  # Track seen volume titles
-        for i in range(1, len(volume_parts), step):
-            content_index = i + (step - 1)
-            if content_index < len(volume_parts):
-                volume_title = volume_parts[i].strip()
-                volume_content = volume_parts[content_index]
-                # Check for duplicate volume titles, skip if duplicate
-                if volume_title and volume_title not in seen_volume_titles:
-                    seen_volume_titles.add(volume_title)
-                    chapters = parse_chapters_from_content(volume_content, language)
-                    if chapters:
-                        volumes.append(Volume(title=volume_title, chapters=chapters))
-                    elif volume_content.strip():  # If has content but no chapter structure
-                        # Treat entire volume content as one chapter
-                        default_title = "正文" if language == 'chinese' else "Content"
-                        volumes.append(Volume(title=volume_title, chapters=[Chapter(title=default_title, content=volume_content.strip(), sections=[])]))
+        for i, match in enumerate(volume_matches):
+            volume_title = match.group(1).strip()
+
+            # Get volume content (from end of current match to start of next match, or end of text)
+            volume_start = match.end()
+            volume_end = volume_matches[i + 1].start() if i + 1 < len(volume_matches) else len(content)
+            volume_content = content[volume_start:volume_end]
+
+            # Check for duplicate volume titles, skip if duplicate
+            if volume_title and volume_title not in seen_volume_titles:
+                seen_volume_titles.add(volume_title)
+                chapters = parse_chapters_from_content(volume_content, language, config)
+                # Validate and merge short chapters if enabled
+                if config.enable_length_validation:
+                    chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
+                if chapters:
+                    volumes.append(Volume(title=volume_title, chapters=chapters))
+                elif volume_content.strip():  # If has content but no chapter structure
+                    # Treat entire volume content as one chapter
+                    default_title = "正文" if language == 'chinese' else "Content"
+                    volumes.append(Volume(title=volume_title, chapters=[Chapter(title=default_title, content=volume_content.strip(), sections=[])]))
 
     # Ensure at least one volume
     if not volumes:
@@ -277,18 +377,24 @@ def parse_hierarchical_content(content: str) -> List[Volume]:
     return volumes
 
 
-def parse_chapters_from_content(content: str, language: str = 'chinese') -> List[Chapter]:
+def parse_chapters_from_content(content: str, language: str = 'chinese', config: Optional[ParserConfig] = None) -> List[Chapter]:
     """
     Split chapters and sections from given content.
     Supports both Chinese and English chapter formats.
+    Optimized version using finditer() for better performance.
+    Validates chapter titles to filter out inline references.
 
     :param content: Text content
     :param language: Language type, 'chinese' or 'english'
+    :param config: Parser configuration (optional)
     :return: Chapter list, each chapter contains title, content and section list
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     if not content or not content.strip():
         return []
-    
+
     # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
@@ -298,59 +404,59 @@ def parse_chapters_from_content(content: str, language: str = 'chinese') -> List
         patterns = ChinesePatterns()
         chapter_pattern = patterns.CHAPTER_PATTERN
         preface_keywords = patterns.PREFACE_KEYWORDS
-    
-    chapters_raw = chapter_pattern.split(content)
+
+    # Optimized: Use finditer() instead of split()
+    all_matches = list(chapter_pattern.finditer(content))
+
+    # Validate matches to filter out inline references (if enabled)
+    if config.enable_chapter_validation:
+        chapter_matches = [match for match in all_matches if is_valid_chapter_title(match, content, language)]
+        if len(all_matches) != len(chapter_matches):
+            logger.info(f"Filtered out {len(all_matches) - len(chapter_matches)} inline chapter references")
+    else:
+        chapter_matches = all_matches
 
     chapter_list = []
-    
+
     # If no chapter titles found, return empty list (let parent function handle)
-    if len(chapters_raw) == 1:
+    if not chapter_matches:
         return chapter_list
-    
+
     # Process first part (possibly preface content without chapter title)
-    if chapters_raw[0].strip():
-        # Treat preface content as untitled chapter
-        sections = parse_sections_from_content(chapters_raw[0], language)
+    first_chapter_start = chapter_matches[0].start()
+    if first_chapter_start > 0 and content[:first_chapter_start].strip():
+        preface_content = content[:first_chapter_start].strip()
+        sections = parse_sections_from_content(preface_content, language)
         preface_title = "前言" if language == 'chinese' else "Preface"
         if sections:
             chapter_list.append(Chapter(title=preface_title, content="", sections=sections))
         else:
-            chapter_list.append(Chapter(title=preface_title, content=chapters_raw[0].strip(), sections=[]))
-    
-    # Determine step size based on language for split results
-    # Chinese mode: [pre-content, chapter title, number group, content, ...]  step=3
-    # English mode: [pre-content, chapter title, content, ...] step=2  
-    step = 3 if language == 'chinese' else 2
+            chapter_list.append(Chapter(title=preface_title, content=preface_content, sections=[]))
+
+    # Process each matched chapter
     seen_titles = set()  # Track seen chapter titles
-    
-    i = 1  # Start from first matched chapter title
-    while i < len(chapters_raw):
-        if i < len(chapters_raw) and chapters_raw[i]:  # Ensure chapter title exists
-            chapter_title = chapters_raw[i].strip()
-            
-            # Get chapter content
-            content_index = i + (step - 1)
-            chapter_content = ""
-            
-            if content_index < len(chapters_raw):
-                chapter_content = chapters_raw[content_index].strip('\n\r')
-                
-            if chapter_title and chapter_title not in seen_titles:  # Ensure title is not empty and not duplicate
-                seen_titles.add(chapter_title)
-                # Further analyze chapter content for sections
-                sections = parse_sections_from_content(chapter_content, language)
-                if sections:
-                    # If has sections, chapter content is empty (all content is in sections)
-                    chapter_list.append(Chapter(title=chapter_title, content="", sections=sections))
-                else:
-                    # If no sections, chapter directly contains content
-                    if not chapter_content.strip():
-                        empty_content = "此章节内容为空。" if language == 'chinese' else "This chapter is empty."
-                        chapter_content = empty_content
-                    chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
-        
-        # Move to next chapter title
-        i += step
+
+    for i, match in enumerate(chapter_matches):
+        chapter_title = match.group(1).strip()
+
+        # Get chapter content (from end of current match to start of next match, or end of text)
+        chapter_start = match.end()
+        chapter_end = chapter_matches[i + 1].start() if i + 1 < len(chapter_matches) else len(content)
+        chapter_content = content[chapter_start:chapter_end].strip('\n\r')
+
+        if chapter_title and chapter_title not in seen_titles:  # Ensure title is not empty and not duplicate
+            seen_titles.add(chapter_title)
+            # Further analyze chapter content for sections
+            sections = parse_sections_from_content(chapter_content, language)
+            if sections:
+                # If has sections, chapter content is empty (all content is in sections)
+                chapter_list.append(Chapter(title=chapter_title, content="", sections=sections))
+            else:
+                # If no sections, chapter directly contains content
+                if not chapter_content.strip():
+                    empty_content = "此章节内容为空。" if language == 'chinese' else "This chapter is empty."
+                    chapter_content = empty_content
+                chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
 
     return chapter_list
 
@@ -359,6 +465,7 @@ def parse_sections_from_content(content: str, language: str = 'chinese') -> List
     """
     Split sections from given chapter content.
     Supports both Chinese and English section formats.
+    Optimized version using finditer() for better performance.
 
     :param content: Chapter content
     :param language: Language type, 'chinese' or 'english'
@@ -366,7 +473,7 @@ def parse_sections_from_content(content: str, language: str = 'chinese') -> List
     """
     if not content or not content.strip():
         return []
-    
+
     # Select corresponding patterns based on language
     if language == 'english':
         patterns = EnglishPatterns()
@@ -377,51 +484,126 @@ def parse_sections_from_content(content: str, language: str = 'chinese') -> List
         section_patterns = [patterns.SECTION_PATTERN]
 
     section_list = []
-    sections_raw = None
+    section_matches = None
     active_pattern = None
-    
+
     # Try different section patterns
     for pattern in section_patterns:
-        sections_raw = pattern.split(content)
-        if len(sections_raw) > 1:  # Found matching pattern
+        matches = list(pattern.finditer(content))
+        if matches:  # Found matching pattern
+            section_matches = matches
             active_pattern = pattern
             break
-    
+
     # If no section pattern found, return empty list
-    if sections_raw is None or len(sections_raw) == 1:
+    if not section_matches:
         return section_list
-    
+
     # Handle first part (chapter preface, content without section title)
-    if sections_raw[0].strip():
+    first_section_start = section_matches[0].start()
+    if first_section_start > 0 and content[:first_section_start].strip():
         preface_title = "章节序言" if language == 'chinese' else "Chapter Preface"
-        section_list.append(Section(title=preface_title, content=sections_raw[0].strip()))
-    
-    # Determine step size based on pattern and language
-    if language == 'english' and active_pattern == patterns.NUMBERED_SECTION_PATTERN:
-        step = 3  # Numbered pattern has groups
-    elif language == 'english':
-        step = 2  # Regular English mode
-    else:
-        step = 3  # Chinese mode has groups
-    
+        section_list.append(Section(title=preface_title, content=content[:first_section_start].strip()))
+
+    # Process each matched section
     seen_titles = set()  # Track seen section titles
-    for i in range(1, len(sections_raw), step):
-        content_index = i + (step - 1)
-        if content_index < len(sections_raw):
-            section_title = sections_raw[i].strip()
-            section_content = sections_raw[content_index].strip('\n\r')
-            if section_title and section_title not in seen_titles:  # Ensure title is not empty and not duplicate
-                seen_titles.add(section_title)
-                # Ensure section content is not empty
-                if not section_content.strip():
-                    empty_content = "此节内容为空。" if language == 'chinese' else "This section is empty."
-                    section_content = empty_content
-                section_list.append(Section(title=section_title, content=section_content))
-        elif i + 1 < len(sections_raw):  # Handle case where last section may lack content
-            section_title = sections_raw[i].strip()
-            if section_title and section_title not in seen_titles:
-                seen_titles.add(section_title)
+    for i, match in enumerate(section_matches):
+        section_title = match.group(1).strip()
+
+        # Get section content (from end of current match to start of next match, or end of text)
+        section_start = match.end()
+        section_end = section_matches[i + 1].start() if i + 1 < len(section_matches) else len(content)
+        section_content = content[section_start:section_end].strip('\n\r')
+
+        if section_title and section_title not in seen_titles:  # Ensure title is not empty and not duplicate
+            seen_titles.add(section_title)
+            # Ensure section content is not empty
+            if not section_content.strip():
                 empty_content = "此节内容为空。" if language == 'chinese' else "This section is empty."
-                section_list.append(Section(title=section_title, content=empty_content))
+                section_content = empty_content
+            section_list.append(Section(title=section_title, content=section_content))
 
     return section_list
+
+
+def validate_and_merge_chapters(chapters: List[Chapter], language: str = 'chinese', min_length: int = 500) -> List[Chapter]:
+    """
+    Validate chapter structure and merge chapters that are too short (likely misidentified).
+
+    :param chapters: List of chapters to validate
+    :param language: Language type, 'chinese' or 'english'
+    :param min_length: Minimum chapter length in characters
+    :return: Validated and merged chapter list
+    """
+    if not chapters:
+        return chapters
+
+    valid_chapters = []
+    accumulated_content = ""
+    accumulated_title = None
+
+    for i, chapter in enumerate(chapters):
+        # Calculate total content length (chapter content + all sections)
+        total_content = chapter.content
+        for section in chapter.sections:
+            total_content += section.content
+
+        content_length = len(total_content.strip())
+
+        # Check if chapter is too short
+        if content_length < min_length:
+            logger.warning(f"Chapter '{chapter.title}' is too short ({content_length} chars), may be misidentified")
+
+            # First chapter or no previous accumulated content
+            if not valid_chapters and not accumulated_content:
+                # Store this chapter for potential merging
+                accumulated_title = chapter.title
+                accumulated_content = f"{chapter.title}\n\n{chapter.content}"
+            else:
+                # Merge into previous chapter or accumulated content
+                if valid_chapters:
+                    # Merge into last valid chapter
+                    last_chapter = valid_chapters[-1]
+                    merged_content = last_chapter.content
+                    if merged_content:
+                        merged_content += f"\n\n{chapter.title}\n{chapter.content}"
+                    else:
+                        merged_content = f"{chapter.title}\n{chapter.content}"
+
+                    # Keep the original chapter structure but update content
+                    valid_chapters[-1] = Chapter(
+                        title=last_chapter.title,
+                        content=merged_content,
+                        sections=last_chapter.sections
+                    )
+                    logger.info(f"Merged short chapter '{chapter.title}' into '{last_chapter.title}'")
+                else:
+                    # Add to accumulated content
+                    accumulated_content += f"\n\n{chapter.title}\n{chapter.content}"
+        else:
+            # Chapter is long enough, it's valid
+            if accumulated_content:
+                # First, add the accumulated content as a chapter
+                preface_title = accumulated_title or ("前言" if language == 'chinese' else "Preface")
+                valid_chapters.append(Chapter(
+                    title=preface_title,
+                    content=accumulated_content.strip(),
+                    sections=[]
+                ))
+                accumulated_content = ""
+                accumulated_title = None
+
+            # Then add current chapter
+            valid_chapters.append(chapter)
+
+    # Handle any remaining accumulated content
+    if accumulated_content:
+        preface_title = accumulated_title or ("前言" if language == 'chinese' else "Preface")
+        valid_chapters.append(Chapter(
+            title=preface_title,
+            content=accumulated_content.strip(),
+            sections=[]
+        ))
+
+    logger.info(f"Chapter validation complete: {len(chapters)} -> {len(valid_chapters)} chapters")
+    return valid_chapters
