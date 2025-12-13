@@ -32,3 +32,17 @@ nodes:
       - handle: llm_no_toc_threshold
         value: 0.8
     task: self::txt-to-epub-core
+  - node_id: txt-to-epub#1
+    title: "Txt To Epub #1"
+    inputs_from:
+      - handle: txt_file
+        value: /oomol-driver/oomol-storage/book_source/qm.txt
+      - handle: epub_dir
+        value: /oomol-driver/oomol-storage/audio
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+    subflow: self::txt-to-epub
