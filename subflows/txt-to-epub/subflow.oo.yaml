@@ -149,35 +149,35 @@ nodes:
     task: get-book-info::get_book_info
 inputs_def:
   - handle: txt_file
-    description: Input TXT file to convert to EPUB format
+    description: "TXT file to convert to EPUB"
     json_schema:
       type: string
       ui:widget: file
     nullable: false
     executor_name: python
   - handle: epub_dir
-    description: Directory where the generated EPUB file will be saved
+    description: "Output directory for the EPUB file"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: python
   - handle: book_title
-    description: Book title (optional, will be auto-detected from file if not provided)
+    description: "Book title (auto-detected from content if omitted)"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: author
-    description: Author name (optional, will be auto-detected from file if not provided)
+    description: "Author name (auto-detected from content if omitted)"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: cover_image
-    description: Cover image file (optional, will be auto-downloaded if not provided)
+    description: "Cover image file (auto-downloaded if omitted)"
     json_schema:
       type: string
       ui:widget: file
@@ -190,7 +190,7 @@ outputs_def:
       type: string
       ui:widget: file
     nullable: false
-    description: Generated EPUB file path
+    description: "Path to the generated EPUB file"
     executor_name: python
 outputs_from:
   - handle: epub_file
@@ -198,5 +198,5 @@ outputs_from:
       - node_id: txt-to-epub#1
         output_handle: epub_file
 title: Txt To Epub
-description: Convert TXT files to EPUB format with automatic book info detection
-  and cover image download
+description: "Converts TXT files to EPUB with automatic book info detection and
+  cover image download"

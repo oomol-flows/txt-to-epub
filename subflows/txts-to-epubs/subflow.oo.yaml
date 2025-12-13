@@ -71,36 +71,39 @@ nodes:
       - handle: filt_hide
         value: true
     task: oomol-file::filter_files
-description: This module converts all txt book files in a folder to epub format.
-  Input a folder path and a storage folder path for the converted files. Returns
-  a list of epub files to the user. Book title, author, and cover are optional.
+description: "Batch converts all TXT files in a folder to EPUB format with
+  optional metadata"
 inputs_def:
   - handle: folder
-    description: Input
+    description: "Folder containing TXT files to convert"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: nodejs
   - handle: epub_dir
+    description: "Output directory for generated EPUB files"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: python
   - handle: book_title
+    description: "Book title (optional, auto-detected per file)"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: author
+    description: "Author name (optional, auto-detected per file)"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: cover_image
+    description: "Cover image (optional, auto-downloaded per file)"
     json_schema:
       type: string
       ui:widget: file
@@ -109,6 +112,7 @@ inputs_def:
     executor_name: python
 outputs_def:
   - handle: array
+    description: "Array of generated EPUB file paths"
     json_schema:
       type: array
     nullable: false
