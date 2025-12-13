@@ -1,6 +1,6 @@
 nodes:
   - node_id: map#1
-    title: "Map #1"
+    title: "%map-1%"
     inputs_from:
       - handle: array
         from_node:
@@ -47,7 +47,7 @@ nodes:
             from_flow:
               - input_handle: epub_dir
   - node_id: list_files_from_folder#1
-    title: "List files from folder #1"
+    title: "%list-files-from-folder-1%"
     inputs_from:
       - handle: folder
         from_flow:
@@ -60,7 +60,7 @@ nodes:
         value: true
     task: oomol-file::list_files_from_folder
   - node_id: filter_files#1
-    title: "Filter Files #1"
+    title: "%filter-files-1%"
     inputs_from:
       - handle: files
         from_node:
@@ -71,39 +71,38 @@ nodes:
       - handle: filt_hide
         value: true
     task: oomol-file::filter_files
-description: "Batch converts all TXT files in a folder to EPUB format with
-  optional metadata"
+description: "%batch-converts-all-txt-files-in-a-folder-to-epub-format-with-opt%"
 inputs_def:
   - handle: folder
-    description: "Folder containing TXT files to convert"
+    description: "%folder-containing-txt-files-to-convert%"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: nodejs
   - handle: epub_dir
-    description: "Output directory for generated EPUB files"
+    description: "%output-directory-for-generated-epub-files%"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: python
   - handle: book_title
-    description: "Book title (optional, auto-detected per file)"
+    description: "%book-title-optional-auto-detected-per-file%"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: author
-    description: "Author name (optional, auto-detected per file)"
+    description: "%author-name-optional-auto-detected-per-file%"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: cover_image
-    description: "Cover image (optional, auto-downloaded per file)"
+    description: "%cover-image-optional-auto-downloaded-per-file%"
     json_schema:
       type: string
       ui:widget: file
@@ -112,7 +111,7 @@ inputs_def:
     executor_name: python
 outputs_def:
   - handle: array
-    description: "Array of generated EPUB file paths"
+    description: "%array-of-generated-epub-file-paths%"
     json_schema:
       type: array
     nullable: false
@@ -121,5 +120,5 @@ outputs_from:
     from_node:
       - node_id: map#1
         output_handle: array
-title: Txts To Epubs
+title: "%txts-to-epubs%"
 icon: ":twemoji:books:"

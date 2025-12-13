@@ -1,6 +1,6 @@
 inputs_def:
   - handle: txt_file
-    description: "Path to the TXT file to read"
+    description: "%path-to-the-txt-file-to-read%"
     json_schema:
       type: string
       ui:widget: file
@@ -8,11 +8,11 @@ inputs_def:
 
 outputs_def:
   - handle: first_800_chars
-    description: "First 800 characters extracted from the file"
+    description: "%first-800-characters-extracted-from-the-file%"
     json_schema:
       type: string
   - handle: filename
-    description: "Base name of the input file without path"
+    description: "%base-name-of-the-input-file-without-path%"
     json_schema:
       type: string
 
@@ -22,7 +22,7 @@ executor:
     entry: __init__.py
     spawn: false
 
-title: "Extract First 800 Characters"
+title: "%extract-first-800-characters%"
 icon: ":carbon:text-creation:"
-description: "Extracts the first 800 characters from a TXT file and returns the filename"
+description: "%extracts-the-first-800-characters-from-a-txt-file-and-returns-th%"
 private: true

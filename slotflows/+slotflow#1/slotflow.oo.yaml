@@ -1,6 +1,6 @@
 nodes:
   - node_id: txt-to-epub#1
-    title: "Txt To Epub #1"
+    title: "%txt-to-epub-13%"
     inputs_from:
       - handle: txt_file
         from_flow:

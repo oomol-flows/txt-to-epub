@@ -1,28 +1,28 @@
 inputs_def:
   - handle: txt_file
-    description: "Path to the TXT file to convert"
+    description: "%path-to-the-txt-file-to-convert%"
     json_schema:
       type: string
       ui:widget: file
   - handle: epub_dir
-    description: "Directory where the EPUB file will be saved"
+    description: "%directory-where-the-epub-file-will-be-saved%"
     json_schema:
       type: string
       ui:widget: dir
   - handle: book_title
-    description: "Book title (optional, auto-detected if not provided)"
+    description: "%book-title-optional-auto-detected-if-not-provided%"
     json_schema:
       type: string
     value:
     nullable: true
   - handle: author
-    description: "Author name (optional, auto-detected if not provided)"
+    description: "%author-name-optional-auto-detected-if-not-provided%"
     json_schema:
       type: string
     value:
     nullable: true
   - handle: cover_image
-    description: "Cover image file path (optional)"
+    description: "%cover-image-file-path-optional%"
     json_schema:
       type: string
       ui:widget: file
@@ -31,13 +31,13 @@ inputs_def:
   - group: Smart TOC Analysis
     collapsed: true
   - handle: enable_smart_toc
-    description: "Enable LLM-powered smart TOC analysis"
+    description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
       type: boolean
     value: false
     nullable: false
   - handle: llm_confidence_threshold
-    description: "Confidence threshold for LLM trigger (0.0-1.0, lower = more often)"
+    description: "%confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often%"
     json_schema:
       type: number
       minimum: 0
@@ -45,7 +45,7 @@ inputs_def:
     value: 0.7
     nullable: false
   - handle: llm_toc_detection_threshold
-    description: "LLM confidence threshold for confirming TOC exists (0.0-1.0)"
+    description: "%llm-confidence-threshold-for-confirming-toc-exists-0-0-1-0%"
     json_schema:
       type: number
       minimum: 0
@@ -53,7 +53,7 @@ inputs_def:
     value: 0.7
     nullable: false
   - handle: llm_no_toc_threshold
-    description: "LLM confidence threshold for confirming no TOC (0.0-1.0)"
+    description: "%llm-confidence-threshold-for-confirming-no-toc-0-0-1-0%"
     json_schema:
       type: number
       minimum: 0
@@ -61,7 +61,7 @@ inputs_def:
     value: 0.8
     nullable: false
   - handle: toc_detection_score_threshold
-    description: "Minimum score for TOC detection (0-100, higher = stricter)"
+    description: "%minimum-score-for-toc-detection-0-100-higher-stricter%"
     json_schema:
       type: number
       minimum: 0
@@ -69,7 +69,7 @@ inputs_def:
     value: 30
     nullable: false
   - handle: toc_max_scan_lines
-    description: "Maximum lines to scan for TOC detection (50-1000)"
+    description: "%maximum-lines-to-scan-for-toc-detection-50-1000%"
     json_schema:
       type: integer
       minimum: 50
@@ -77,7 +77,7 @@ inputs_def:
     value: 300
     nullable: false
   - handle: llm
-    description: "LLM model configuration"
+    description: "%llm-model-configuration%"
     json_schema:
       ui:options:
         title: Model
@@ -89,7 +89,7 @@ inputs_def:
       max_tokens: 128000
 outputs_def:
   - handle: epub_file
-    description: "Generated EPUB file path"
+    description: "%generated-epub-file-path%"
     json_schema:
       type: string
       ui:widget: file
@@ -100,9 +100,8 @@ executor:
   options:
     spawn: false
     entry: __init__.py
-title: Txt To Epub Core
+title: "%txt-to-epub-core%"
 icon: ":twemoji:blue-book:"
 applet: true
-description: "Converts TXT book files to EPUB format with smart TOC detection
-  and optional LLM-powered analysis"
+description: "%converts-txt-book-files-to-epub-format-with-smart-toc-detection%"
 private: true

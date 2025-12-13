@@ -1,6 +1,6 @@
 nodes:
   - node_id: txt-to-epub#1
-    title: "Txt To Epub #1"
+    title: "%txt-to-epub-12%"
     inputs_from:
       - handle: txt_file
         value: /oomol-driver/oomol-storage/book/伯特兰·罗素：哲学问题.txt
@@ -51,14 +51,14 @@ nodes:
         value: 300
     task: self::txt-to-epub-core
   - node_id: txt-first-800-chars#1
-    title: "Extract First 800 Characters #1"
+    title: "%extract-first-800-characters-1%"
     inputs_from:
       - handle: txt_file
         from_flow:
           - input_handle: txt_file
     task: self::txt-first-800-chars
   - node_id: llm#1
-    title: "LLM #1"
+    title: "%llm-1%"
     inputs_from:
       - handle: messages
         value: null
@@ -135,7 +135,7 @@ nodes:
         json_schema:
           type: string
   - node_id: get_book_info#1
-    title: "Get Book Info #1"
+    title: "%get-book-info-1%"
     inputs_from:
       - handle: title
         from_node:
@@ -149,35 +149,35 @@ nodes:
     task: get-book-info::get_book_info
 inputs_def:
   - handle: txt_file
-    description: "TXT file to convert to EPUB"
+    description: "%txt-file-to-convert-to-epub%"
     json_schema:
       type: string
       ui:widget: file
     nullable: false
     executor_name: python
   - handle: epub_dir
-    description: "Output directory for the EPUB file"
+    description: "%output-directory-for-the-epub-file%"
     json_schema:
       type: string
       ui:widget: dir
     nullable: false
     executor_name: python
   - handle: book_title
-    description: "Book title (auto-detected from content if omitted)"
+    description: "%book-title-auto-detected-from-content-if-omitted%"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: author
-    description: "Author name (auto-detected from content if omitted)"
+    description: "%author-name-auto-detected-from-content-if-omitted%"
     json_schema:
       type: string
     value:
     nullable: true
     executor_name: python
   - handle: cover_image
-    description: "Cover image file (auto-downloaded if omitted)"
+    description: "%cover-image-file-auto-downloaded-if-omitted%"
     json_schema:
       type: string
       ui:widget: file
@@ -186,17 +186,16 @@ inputs_def:
     executor_name: python
 outputs_def:
   - handle: epub_file
+    description: "%path-to-the-generated-epub-file%"
     json_schema:
       type: string
       ui:widget: file
     nullable: false
-    description: "Path to the generated EPUB file"
     executor_name: python
 outputs_from:
   - handle: epub_file
     from_node:
       - node_id: txt-to-epub#1
         output_handle: epub_file
-title: Txt To Epub
-description: "Converts TXT files to EPUB with automatic book info detection and
-  cover image download"
+title: "%txt-to-epub2%"
+description: "%converts-txt-files-to-epub-with-automatic-book-info-detection-an%"
