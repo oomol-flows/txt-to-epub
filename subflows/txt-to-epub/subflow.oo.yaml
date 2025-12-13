@@ -160,30 +160,29 @@ inputs_def:
     json_schema:
       type: string
       ui:widget: dir
-    value: /oomol-driver/oomol-storage/book
     nullable: false
     executor_name: python
   - handle: book_title
     description: Book title (optional, will be auto-detected from file if not provided)
     json_schema:
       type: string
-    nullable: true
     value:
+    nullable: true
     executor_name: python
   - handle: author
     description: Author name (optional, will be auto-detected from file if not provided)
     json_schema:
       type: string
-    nullable: true
     value:
+    nullable: true
     executor_name: python
   - handle: cover_image
     description: Cover image file (optional, will be auto-downloaded if not provided)
     json_schema:
       type: string
       ui:widget: file
-    nullable: true
     value:
+    nullable: true
     executor_name: python
 outputs_def:
   - handle: epub_file

@@ -36,9 +36,7 @@ nodes:
     title: "Txt To Epub #1"
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/oomol-storage/book_source/qm.txt
       - handle: epub_dir
-        value: /oomol-driver/oomol-storage/audio
       - handle: book_title
         value: null
       - handle: author
