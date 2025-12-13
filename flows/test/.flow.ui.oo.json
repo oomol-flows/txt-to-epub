@@ -1,10 +1,16 @@
 {
   "nodes": {
-    "test#2": {
+    "txt-to-epub-core#1": {
+      "contentWidth": 450,
       "rfNode": {
         "position": {
-          "x": -298.06039076121,
-          "y": 383.1168658218776
+          "x": -382.7430759755487,
+          "y": 935.343854148852
+        }
+      },
+      "sections": {
+        "inputHandle": {
+          "cardCollapsed": true
         }
       }
     }

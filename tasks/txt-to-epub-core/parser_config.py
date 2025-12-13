@@ -23,12 +23,12 @@ class ParserConfig:
     """Configuration class for text parser"""
 
     # Minimum content length thresholds
-    min_chapter_length: int = 500  # Minimum chapter length in characters
-    min_section_length: int = 100  # Minimum section length in characters
+    min_chapter_length: int = 100  # Minimum chapter length in characters
+    min_section_length: int = 50  # Minimum section length in characters
 
     # Validation settings
     enable_chapter_validation: bool = True  # Enable chapter title validation
-    enable_length_validation: bool = True  # Enable length-based validation
+    enable_length_validation: bool = False  # Enable length-based validation
     enable_fuzzy_matching: bool = False  # Enable fuzzy pattern matching (future)
 
     # Custom patterns (regex strings)
@@ -48,6 +48,23 @@ class ParserConfig:
     # Debug settings
     debug_mode: bool = False
     log_rejected_matches: bool = False
+
+    # ========== LLM辅助配置 (简化版) ==========
+
+    enable_llm_assistance: bool = False
+    """是否启用LLM智能目录识别 (默认关闭)"""
+
+    llm_api_key: Optional[str] = None
+    """LLM API密钥"""
+
+    llm_base_url: Optional[str] = None
+    """LLM API地址 (可选，用于兼容百度千帆等服务)"""
+
+    llm_model: str = "deepseek-v3.2"
+    """使用的LLM模型"""
+
+    llm_confidence_threshold: float = 0.7
+    """LLM置信度阈值,低于此值时使用规则解析结果 (默认0.7)"""
 
     @classmethod
     def from_yaml(cls, yaml_path: str) -> 'ParserConfig':
@@ -118,7 +135,13 @@ class ParserConfig:
             special_chapter_keywords=config_dict.get('special_chapter_keywords', []),
             language_hints=config_dict.get('language_hints', {}),
             debug_mode=config_dict.get('debug_mode', False),
-            log_rejected_matches=config_dict.get('log_rejected_matches', False)
+            log_rejected_matches=config_dict.get('log_rejected_matches', False),
+            # LLM配置 (简化版)
+            enable_llm_assistance=config_dict.get('enable_llm_assistance', False),
+            llm_api_key=config_dict.get('llm_api_key'),
+            llm_base_url=config_dict.get('llm_base_url'),
+            llm_model=config_dict.get('llm_model', 'deepseek-v3.2'),
+            llm_confidence_threshold=config_dict.get('llm_confidence_threshold', 0.7)
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -140,7 +163,13 @@ class ParserConfig:
             'special_chapter_keywords': self.special_chapter_keywords,
             'language_hints': self.language_hints,
             'debug_mode': self.debug_mode,
-            'log_rejected_matches': self.log_rejected_matches
+            'log_rejected_matches': self.log_rejected_matches,
+            # LLM配置 (简化版)
+            'enable_llm_assistance': self.enable_llm_assistance,
+            'llm_api_key': self.llm_api_key,
+            'llm_base_url': self.llm_base_url,
+            'llm_model': self.llm_model,
+            'llm_confidence_threshold': self.llm_confidence_threshold
         }
 
     def save_to_yaml(self, yaml_path: str) -> None:

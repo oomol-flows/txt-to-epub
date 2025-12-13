@@ -4,8 +4,8 @@
       "contentWidth": 633.763148629077,
       "rfNode": {
         "position": {
-          "x": 2946,
-          "y": 29.75
+          "x": 2460,
+          "y": 0
         }
       }
     },
@@ -13,7 +13,7 @@
       "rfNode": {
         "position": {
           "x": 486,
-          "y": 143
+          "y": 151.25
         }
       }
     },
@@ -21,7 +21,7 @@
       "rfNode": {
         "position": {
           "x": 972,
-          "y": 0
+          "y": 8.25
         }
       },
       "sections": {
@@ -33,27 +33,11 @@
       }
     },
     "get_book_info#1": {
-      "contentWidth": 450,
+      "contentWidth": 350,
       "rfNode": {
         "position": {
           "x": 1458,
-          "y": 218.5
-        }
-      }
-    },
-    "url2file#1": {
-      "rfNode": {
-        "position": {
-          "x": 1974,
-          "y": 437.5
-        }
-      },
-      "sections": {
-        "inputs": {
-          "groupCollapsed": {
-            "Strategy": true,
-            "Connection": true
-          }
+          "y": 226.75
         }
       }
     }
@@ -63,15 +47,15 @@
       "rfNode": {
         "position": {
           "x": 0,
-          "y": 304
+          "y": 312.25
         }
       }
     },
     "output": {
       "rfNode": {
         "position": {
-          "x": 3646,
-          "y": 142.25
+          "x": 3160,
+          "y": 150.5
         }
       }
     }

@@ -21,7 +21,7 @@ class ChinesePatterns:
     VOLUME_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})[卷部篇]\s+[^\n]*)')
     
     # Chapter patterns
-    CHAPTER_PATTERN = re.compile(r'(?:^|\n)(\s*(?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)\s+[^\n]*)\s*)(?=\n|$)', re.MULTILINE)
+    CHAPTER_PATTERN = re.compile(r'(?:^|(?<=\n))(\s*(?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)\s+[^\n]*)\s*)(?=\n|$)', re.MULTILINE)
     
     # Section patterns
     SECTION_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})节\s+[^\n]*)')
@@ -172,22 +172,64 @@ def is_valid_chapter_title(match, content: str, language: str = 'chinese') -> bo
     return True
 
 
-def remove_table_of_contents(content: str, language: str = None) -> str:
+def remove_table_of_contents(content: str, language: str = None, llm_assistant=None) -> str:
     """
     Remove the table of contents section from the text to avoid interference with chapter recognition.
     Supports both Chinese and English table of contents recognition.
-    
+
+    Enhanced version: Detects TOC by identifying regions with dense chapter-like patterns.
+    Optionally uses LLM for more accurate TOC identification.
+
     :param content: Original text content
     :param language: Language type, 'chinese' or 'english', auto-detect if None
+    :param llm_assistant: Optional LLM assistant for intelligent TOC detection
     :return: Text content with table of contents removed
     """
+    print("\n" + "="*60)
+    print("【目录检测】开始检测文档中是否存在目录页...")
+    print("="*60)
+
     if not content or not content.strip():
+        print("【目录检测】文档内容为空，跳过")
         return content
-    
+
     # Auto-detect language
     if language is None:
         language = detect_language(content)
-    
+
+    print(f"【目录检测】检测到文档语言: {language}")
+
+    # Try LLM-based TOC detection first if available
+    if llm_assistant:
+        try:
+            print("【目录检测】尝试使用LLM智能识别目录...")
+            logger.info("尝试使用LLM识别目录...")
+            toc_result = llm_assistant.identify_table_of_contents(content[:5000], language)
+
+            if toc_result.get('has_toc') and toc_result.get('confidence', 0) > 0.7:
+                print(f"【目录检测】✓ LLM确认存在目录 (置信度: {toc_result['confidence']:.2f})")
+                print(f"【目录检测】原因: {toc_result.get('reason', 'N/A')}")
+                logger.info(f"LLM确认存在目录 (置信度: {toc_result['confidence']:.2f})")
+                logger.info(f"原因: {toc_result.get('reason', 'N/A')}")
+
+                # Use rule-based method to find and remove TOC, but with LLM confirmation
+                # This provides a good balance between accuracy and robustness
+                pass  # Continue to rule-based detection below
+            else:
+                print(f"【目录检测】✗ LLM判定: {'无目录' if not toc_result.get('has_toc') else '目录置信度低'} (置信度: {toc_result.get('confidence', 0):.2f})")
+                logger.info(f"LLM未检测到目录或置信度较低 (has_toc={toc_result.get('has_toc')}, confidence={toc_result.get('confidence', 0):.2f})")
+                # If LLM says no TOC with high confidence, skip TOC removal
+                if not toc_result.get('has_toc') and toc_result.get('confidence', 0) > 0.8:
+                    print("【目录检测】LLM高置信度判定无目录，跳过目录移除")
+                    print("="*60 + "\n")
+                    logger.info("LLM高置信度判定无目录，跳过目录移除")
+                    return content
+        except Exception as e:
+            print(f"【目录检测】⚠ LLM识别失败，回退到规则方法: {e}")
+            logger.warning(f"LLM目录识别失败，回退到规则方法: {e}")
+    else:
+        print("【目录检测】使用规则方法检测目录...")
+
     # Select corresponding patterns
     if language == 'english':
         patterns = EnglishPatterns()
@@ -199,88 +241,136 @@ def remove_table_of_contents(content: str, language: str = None) -> str:
         toc_keywords = patterns.TOC_KEYWORDS
         preface_keywords = patterns.PREFACE_KEYWORDS
         chapter_patterns = [patterns.CHAPTER_PATTERN, patterns.VOLUME_PATTERN]
-    
+
     lines = content.split('\n')
-    
+
     # Find table of contents start position
     toc_start = -1
     toc_end = -1
-    
+
+    # Method 1: Explicit TOC keyword detection
     for i, line in enumerate(lines):
         stripped_line = line.strip()
-        
+
         # Identify table of contents start: standalone line with TOC keywords
         if stripped_line in toc_keywords or any(keyword.lower() == stripped_line.lower() for keyword in toc_keywords):
             toc_start = i
-            continue
-            
-        # If table of contents start found, look for the end
-        if toc_start != -1:
-            # Table of contents end conditions:
-            # 1. Consecutive empty lines (usually TOC is followed by empty lines)
-            # 2. Clear main content (long paragraphs)
-            if not stripped_line:  # Empty line
-                # Check if there are consecutive empty lines or main content following
-                next_non_empty = -1
-                for j in range(i + 1, min(i + 5, len(lines))):
-                    if lines[j].strip():
-                        next_non_empty = j
+            print(f"【目录检测】✓ 方法1: 检测到目录关键词在第 {i+1} 行: '{stripped_line}'")
+            logger.info(f"检测到目录标题在第 {i+1} 行: {stripped_line}")
+            break
+
+    # Method 2: Detect dense chapter pattern region (TOC without explicit keyword)
+    if toc_start == -1:
+        print("【目录检测】方法1未发现目录关键词，尝试方法2: 密集章节模式检测...")
+        # Scan for regions with abnormally high density of chapter-like patterns
+        window_size = 20  # Check 20 lines at a time
+        max_density = 0
+        max_density_start = -1
+
+        for i in range(0, min(len(lines), 500), 5):  # Only check first 500 lines
+            window_end = min(i + window_size, len(lines))
+            window_lines = lines[i:window_end]
+
+            # Count chapter-like patterns in window
+            chapter_count = 0
+            total_chars = 0
+
+            for line in window_lines:
+                stripped = line.strip()
+                total_chars += len(stripped)
+
+                # Check if line matches chapter pattern
+                for pattern in chapter_patterns:
+                    if pattern.search(stripped):
+                        # Check if it's a short line (TOC entry, not actual chapter with content)
+                        if len(stripped) < 80:  # TOC entries are usually short
+                            chapter_count += 1
                         break
-                        
-                if next_non_empty != -1:
-                    next_line = lines[next_non_empty].strip()
-                    # If next non-empty line is main content (long and not chapter title format)
-                    if len(next_line) > 30:
-                        is_chapter = False
-                        for pattern in chapter_patterns:
-                            if pattern.search(next_line):
-                                is_chapter = True
-                                break
-                        if not is_chapter:
-                            toc_end = i
-                            break
-            
-            # If current line is clearly the beginning of main content (long paragraph)
-            elif len(stripped_line) > 50:
+
+            # Calculate density: chapters per 1000 characters
+            if total_chars > 100:  # Ensure sufficient text
+                density = (chapter_count * 1000) / total_chars
+
+                # High density suggests TOC
+                if density > max_density and chapter_count >= 5:
+                    max_density = density
+                    max_density_start = i
+
+        # If found high-density region, consider it as TOC
+        if max_density > 100:  # Threshold: >100 chapters per 1000 chars
+            toc_start = max_density_start
+            print(f"【目录检测】✓ 方法2: 检测到密集章节区域（疑似目录）从第 {toc_start+1} 行开始")
+            print(f"【目录检测】章节密度: {max_density:.1f} 章/1000字符")
+            logger.info(f"检测到密集章节区域（疑似目录）从第 {toc_start+1} 行开始，密度: {max_density:.1f}")
+
+    # Find TOC end
+    if toc_start != -1:
+        # Look for the end of TOC
+        chapter_density_window = 10
+
+        for i in range(toc_start + 1, len(lines)):
+            stripped_line = lines[i].strip()
+
+            # Check for long paragraph (main content)
+            if len(stripped_line) > 100:
+                # Check if it's NOT a chapter title
                 is_chapter = False
-                is_preface = False
-                
-                # Check if it's a chapter title
                 for pattern in chapter_patterns:
                     if pattern.search(stripped_line):
                         is_chapter = True
                         break
-                
-                # Check if it's a preface
-                if any(keyword.lower() == stripped_line.lower() for keyword in preface_keywords):
-                    is_preface = True
-                
-                if not is_chapter and not is_preface:
+
+                if not is_chapter:
+                    # Found long content paragraph
                     toc_end = i - 1
+                    logger.info(f"目录结束于第 {toc_end+1} 行（检测到长段落正文）")
                     break
-    
-    # If table of contents found, remove it
-    if toc_start != -1 and toc_end != -1:
-        # Remove table of contents but keep content before and after
+
+            # Check for consecutive empty lines followed by content
+            if not stripped_line:
+                # Look ahead for content
+                next_content_idx = -1
+                for j in range(i + 1, min(i + 5, len(lines))):
+                    if lines[j].strip():
+                        next_content_idx = j
+                        break
+
+                if next_content_idx != -1:
+                    next_line = lines[next_content_idx].strip()
+                    # If next is long content or preface
+                    if len(next_line) > 50:
+                        is_chapter = any(p.search(next_line) for p in chapter_patterns)
+                        is_preface = any(keyword.lower() == next_line.lower() for keyword in preface_keywords)
+
+                        if not is_chapter or is_preface:
+                            toc_end = i
+                            logger.info(f"目录结束于第 {toc_end+1} 行（空行后接正文）")
+                            break
+
+            # Safety: if scanned too far without finding end, limit TOC region
+            if i - toc_start > 200:
+                toc_end = i
+                logger.warning(f"目录区域过长，强制在第 {toc_end+1} 行结束")
+                break
+
+    # Remove TOC if found
+    if toc_start != -1 and toc_end != -1 and toc_end > toc_start:
+        removed_lines = toc_end - toc_start + 1
+        print(f"\n【目录移除】✓ 成功移除目录区域!")
+        print(f"【目录移除】位置: 第 {toc_start+1} 行 到 第 {toc_end+1} 行")
+        print(f"【目录移除】删除: 共 {removed_lines} 行")
+        print("="*60 + "\n")
+        logger.info(f"移除目录: 第 {toc_start+1} 行到第 {toc_end+1} 行，共 {removed_lines} 行")
         remaining_lines = lines[:toc_start] + lines[toc_end + 1:]
         return '\n'.join(remaining_lines)
-    elif toc_start != -1:
-        # Only found table of contents start, possibly continues until clear chapter beginning
-        for i in range(toc_start + 1, len(lines)):
-            line = lines[i].strip()
-            # Find first clear main content chapter title or preface
-            for pattern in chapter_patterns:
-                if pattern.search(line):
-                    remaining_lines = lines[:toc_start] + lines[i:]
-                    return '\n'.join(remaining_lines)
-            if any(keyword.lower() == line.lower() for keyword in preface_keywords):
-                remaining_lines = lines[:toc_start] + lines[i:]
-                return '\n'.join(remaining_lines)
-    
+    else:
+        print("【目录检测】✗ 未检测到目录区域")
+        print("="*60 + "\n")
+
     return content
 
 
-def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None) -> List[Volume]:
+def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None) -> List[Volume]:
     """
     Split text content into three-level hierarchical structure: volumes, chapters, sections.
     Supports both Chinese and English book formats.
@@ -288,6 +378,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
 
     :param content: Text content
     :param config: Parser configuration (optional, uses default if None)
+    :param llm_assistant: Optional LLM assistant for intelligent TOC detection
     :return: List of volumes containing complete hierarchical structure
     """
     if config is None:
@@ -301,7 +392,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
     language = detect_language(content)
 
     # Preprocessing: remove table of contents to avoid interference with content parsing
-    content = remove_table_of_contents(content, language)
+    content = remove_table_of_contents(content, language, llm_assistant)
 
     # Select corresponding patterns based on language
     if language == 'english':

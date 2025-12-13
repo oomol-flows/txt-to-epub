@@ -24,6 +24,33 @@ inputs_def:
       ui:widget: file
     value:
     nullable: true
+  - group: Smart TOC Analysis
+    collapsed: false
+  - handle: enable_smart_toc
+    description: Enable LLM-powered smart table of contents analysis
+    json_schema:
+      type: boolean
+    value: false
+    nullable: false
+  - handle: llm_confidence_threshold
+    description: Confidence threshold for using LLM (0.0-1.0). Lower values trigger
+      LLM more often. Set to 0 to always use LLM.
+    json_schema:
+      type: number
+      minimum: 0
+      maximum: 1
+    value: 0.7
+    nullable: false
+  - handle: llm
+    json_schema:
+      ui:options:
+        title: Model
+      ui:widget: llm::model
+    value:
+      model: oomol-chat
+      temperature: 0
+      top_p: 0.5
+      max_tokens: 128000
 outputs_def:
   - handle: epub_file
     description: Output

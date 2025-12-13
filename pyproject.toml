@@ -8,6 +8,8 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "EbookLib==0.18",
     "chardet==5.2.0",
+    "requests (>=2.32.5,<3.0.0)",
+    "openai (>=2.11.0,<3.0.0)",
 ]
 
 [tool.poetry]

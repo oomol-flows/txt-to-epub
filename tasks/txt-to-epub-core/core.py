@@ -17,6 +17,9 @@ except ImportError:
             self.n = 0
         def update(self, n=1):
             self.n += n
+        def set_description(self, desc=None):
+            """Dummy method to match tqdm interface."""
+            pass
         def __enter__(self):
             return self
         def __exit__(self, *args):
@@ -31,6 +34,17 @@ from .word_count_validator import validate_conversion_integrity
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# 尝试导入LLM相关模块
+try:
+    from .llm_parser_assistant import HybridParser
+    LLM_AVAILABLE = True
+except ImportError as e:
+    LLM_AVAILABLE = False
+    logger.warning(f"LLM辅助功能不可用: {e}")
+except Exception as e:
+    LLM_AVAILABLE = False
+    logger.warning(f"LLM辅助功能加载失败: {e}")
 
 
 def _create_epub_book(title: str, author: str, cover_image: Optional[str] = None) -> epub.EpubBook:
@@ -179,7 +193,61 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
 
             # Step 3: Parse hierarchical content
             pbar.set_description("解析文档结构")
-            volumes = parse_hierarchical_content(content, config)
+
+            # Debug logging
+            print(f"=== 解析器选择调试 (print) ===")
+            print(f"config.enable_llm_assistance: {config.enable_llm_assistance}")
+            print(f"LLM_AVAILABLE: {LLM_AVAILABLE}")
+            print(f"config.llm_api_key存在: {config.llm_api_key is not None}")
+            print(f"config.llm_base_url: {config.llm_base_url}")
+            print(f"config.llm_model: {config.llm_model}")
+
+            logger.info(f"=== 解析器选择调试 ===")
+            logger.info(f"config.enable_llm_assistance: {config.enable_llm_assistance}")
+            logger.info(f"LLM_AVAILABLE: {LLM_AVAILABLE}")
+            logger.info(f"config.llm_api_key存在: {config.llm_api_key is not None}")
+            logger.info(f"config.llm_base_url: {config.llm_base_url}")
+            logger.info(f"config.llm_model: {config.llm_model}")
+
+            # 使用混合解析器（如果启用LLM且可用）
+            if config.enable_llm_assistance and LLM_AVAILABLE:
+                print(">>> 进入混合解析器分支")
+                logger.info("使用混合解析器 (规则 + LLM)")
+                try:
+                    print(">>> 创建HybridParser实例...")
+                    parser = HybridParser(
+                        llm_api_key=config.llm_api_key,
+                        llm_base_url=config.llm_base_url,
+                        llm_model=config.llm_model,
+                        config=config
+                    )
+                    print(">>> HybridParser创建成功,开始解析...")
+                    volumes = parser.parse(content)
+                    print(f">>> 解析完成,生成了 {len(volumes)} 个卷")
+
+                    # 输出LLM统计信息
+                    llm_stats = parser.get_stats()
+                    print(f">>> LLM统计: {llm_stats}")
+                    if llm_stats['total_calls'] > 0:
+                        logger.info(f"LLM统计: {llm_stats['total_calls']} 次调用, "
+                                  f"${llm_stats['total_cost']:.4f} 成本, "
+                                  f"{llm_stats['total_input_tokens']} + {llm_stats['total_output_tokens']} tokens")
+                except Exception as e:
+                    print(f">>> 混合解析器异常: {type(e).__name__}: {e}")
+                    import traceback
+                    print(f">>> 异常堆栈:\n{traceback.format_exc()}")
+                    logger.warning(f"混合解析器失败，降级到纯规则解析: {e}")
+                    volumes = parse_hierarchical_content(content, config)
+            else:
+                # 使用传统规则解析
+                print(">>> 进入传统规则解析分支")
+                if config.enable_llm_assistance and not LLM_AVAILABLE:
+                    print(">>> 原因: LLM模块不可用")
+                    logger.warning("用户启用了智能分析,但LLM模块不可用,降级到纯规则解析")
+                else:
+                    print(">>> 原因: 用户未启用智能分析")
+                    logger.info("使用传统规则解析")
+                volumes = parse_hierarchical_content(content, config)
 
             # Validate parsing results
             if not volumes:

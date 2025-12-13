@@ -4,18 +4,23 @@ from oocana import Context
 
 #region generated meta
 import typing
+from oocana import LLMModelOptions
 class Inputs(typing.TypedDict):
     txt_file: str
     epub_dir: str
     book_title: str | None
     author: str | None
     cover_image: str | None
+    enable_smart_toc: bool
+    llm_confidence_threshold: float
+    llm: LLMModelOptions
 class Outputs(typing.TypedDict):
     epub_file: typing.NotRequired[str]
 #endregion
  
 # Import core conversion functionality
 from .core import txt_to_epub
+from .parser_config import ParserConfig
 
 # Simplified logging configuration
 logger = logging.getLogger(__name__)
@@ -24,19 +29,26 @@ logger = logging.getLogger(__name__)
 def main(params: Inputs, context: Context) -> Outputs:
     """
     Main function: Convert text file to EPUB format ebook
-    
+
     This is a simplified version focusing on core functionality with reduced complex API exposure.
 
     Args:
         params: Input parameter dictionary, required parameters: txt_file, epub_dir
         context: Context object
-        
+
     Returns:
         Dictionary containing the generated EPUB file path
     """
+    # Configure logging at the very beginning
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger.info("========== TXT to EPUB 转换开始 ==========")
+    print("========== TXT to EPUB 转换开始 ==========")  # 强制输出,确保代码执行到这里
+
     # Validate required parameters
     txt_file = params.get('txt_file')
     epub_dir = params.get('epub_dir')
+
+    print(f"DEBUG: txt_file={txt_file}, epub_dir={epub_dir}")  # 调试输出
     
     if not txt_file or not epub_dir:
         logger.error("Missing required parameters: both txt_file and epub_dir cannot be empty")
@@ -61,7 +73,39 @@ def main(params: Inputs, context: Context) -> Outputs:
         
         # Generate output file path
         epub_file = os.path.join(epub_dir, f"{book_title}.epub")
-        
+
+        # Get smart TOC setting
+        enable_smart_toc = params.get('enable_smart_toc', False)
+        llm_confidence_threshold = params.get('llm_confidence_threshold', 0.7)
+        llm_config = params.get('llm', {})
+
+        # Debug logging
+        print(f"=== 配置调试信息 (print) ===")
+        print(f"params中的enable_smart_toc值: {params.get('enable_smart_toc')}")
+        print(f"实际enable_smart_toc: {enable_smart_toc}")
+        print(f"置信度阈值: {llm_confidence_threshold}")
+        print(f"llm_config: {llm_config}")
+
+        logger.info(f"=== 配置调试信息 ===")
+        logger.info(f"params中的enable_smart_toc值: {params.get('enable_smart_toc')}")
+        logger.info(f"实际enable_smart_toc: {enable_smart_toc}")
+        logger.info(f"置信度阈值: {llm_confidence_threshold}")
+        logger.info(f"llm_config: {llm_config}")
+
+        # Log smart TOC setting
+        if enable_smart_toc:
+            logger.info(f"智能目录分析: 已启用 (模型: {llm_config.get('model', 'deepseek-v3.2')}, 阈值: {llm_confidence_threshold})")
+        else:
+            logger.info("智能目录分析: 未启用,使用传统规则解析")
+
+        # Configure parser
+        config = ParserConfig(
+            enable_llm_assistance=enable_smart_toc,
+            llm_api_key=context.oomol_llm_env.get("api_key") if enable_smart_toc else None,
+            llm_base_url=context.oomol_llm_env.get("base_url_v1") if enable_smart_toc else None,
+            llm_model=llm_config.get('model', 'deepseek-v3.2') if enable_smart_toc else 'deepseek-v3.2',
+            llm_confidence_threshold=llm_confidence_threshold
+        )
         # Execute conversion
         logger.info(f"Starting conversion: {txt_file} -> {epub_file}")
         result = txt_to_epub(
@@ -69,7 +113,8 @@ def main(params: Inputs, context: Context) -> Outputs:
             epub_file=epub_file,
             title=book_title,
             author=author,
-            cover_image=cover_image
+            cover_image=cover_image,
+            config = config
         )
         
         logger.info(f"Conversion completed: {epub_file}")

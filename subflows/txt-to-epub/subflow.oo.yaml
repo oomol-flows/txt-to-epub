@@ -23,14 +23,24 @@ nodes:
       - handle: cover_image
         value: null
         from_flow:
-          []
+          - input_handle: cover_image
         from_node:
-          - node_id: +python#1
-            output_handle: cover_image
+          - node_id: get_book_info#1
+            output_handle: cover_file
       - handle: epub_dir
         value: /oomol-driver/oomol-storage/book
         from_flow:
           - input_handle: epub_dir
+      - handle: llm
+        value:
+          model: oomol-chat
+          temperature: 0
+          top_p: 0.5
+          max_tokens: 4096
+      - handle: enable_smart_toc
+        value: true
+      - handle: llm_confidence_threshold
+        value: 0.7
     task: self::txt-to-epub-core
   - node_id: txt-first-800-chars#1
     title: "Extract First 800 Characters #1"
@@ -129,83 +139,6 @@ nodes:
           - node_id: llm#1
             output_handle: author
     task: get-book-info::get_book_info
-  - node_id: url2file#1
-    title: "URL to file #1"
-    inputs_from:
-      - handle: url
-        from_node:
-          - node_id: get_book_info#1
-            output_handle: cover_url
-      - handle: saved_folder
-        value: null
-      - handle: ensure_folder
-        value: false
-      - handle: file_head
-        value: null
-      - handle: if_existing
-        value: override
-      - handle: threads_count
-        value: 1
-      - handle: headers
-        value:
-          {}
-      - handle: cookies
-        value:
-          {}
-      - handle: window_width
-        value: 7
-      - handle: failure_ladder
-        value:
-          - 5
-      - handle: min_segment_length
-        value: 1048576
-      - handle: once_fetch_size
-        value: 16384
-      - handle: timeout
-        value: 30
-      - handle: retry_times
-        value: 0
-      - handle: retry_sleep
-        value: 0
-    subflow: downloader::url2file
-  - node_id: +python#1
-    title: "Python #1"
-    icon: ":logos:python:"
-    task:
-      ui:
-        default_width: 450
-      inputs_def:
-        - handle: cover_image
-          json_schema:
-            type: string
-            ui:widget: file
-          nullable: true
-        - handle: download_cover
-          json_schema:
-            type: string
-            ui:widget: save
-          nullable: true
-          description: Path of the downloaded file
-      outputs_def:
-        - handle: cover_image
-          json_schema:
-            type: string
-            ui:widget: file
-          nullable: true
-      executor:
-        name: python
-        options:
-          entry: scriptlets/+scriptlet#1.py
-    inputs_from:
-      - handle: download_cover
-        from_node:
-          - node_id: url2file#1
-            output_handle: file
-        value:
-      - handle: cover_image
-        value:
-        from_flow:
-          - input_handle: cover_image
 inputs_def:
   - handle: txt_file
     description: Input TXT file to convert to EPUB format
