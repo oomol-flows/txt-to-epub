@@ -23,4 +23,12 @@ nodes:
           max_tokens: 4096
       - handle: llm_confidence_threshold
         value: 1
+      - handle: toc_detection_score_threshold
+        value: 30
+      - handle: toc_max_scan_lines
+        value: 300
+      - handle: llm_toc_detection_threshold
+        value: 0.7
+      - handle: llm_no_toc_threshold
+        value: 0.8
     task: self::txt-to-epub-core

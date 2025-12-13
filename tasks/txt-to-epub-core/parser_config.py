@@ -66,6 +66,20 @@ class ParserConfig:
     llm_confidence_threshold: float = 0.7
     """LLM置信度阈值,低于此值时使用规则解析结果 (默认0.7)"""
 
+    llm_toc_detection_threshold: float = 0.7
+    """LLM判断存在目录的置信度阈值 (默认0.7)，LLM必须超过此值才确认存在目录"""
+
+    llm_no_toc_threshold: float = 0.8
+    """LLM判断无目录的置信度阈值 (默认0.8)，超过此值时直接跳过目录移除"""
+
+    # ========== 目录检测配置 ==========
+
+    toc_detection_score_threshold: float = 30.0
+    """目录检测的综合评分阈值 (0-100, 默认30)，分数越高要求越严格"""
+
+    toc_max_scan_lines: int = 300
+    """目录检测的最大扫描行数 (默认300)，防止误判过长区域为目录"""
+
     @classmethod
     def from_yaml(cls, yaml_path: str) -> 'ParserConfig':
         """
@@ -141,7 +155,12 @@ class ParserConfig:
             llm_api_key=config_dict.get('llm_api_key'),
             llm_base_url=config_dict.get('llm_base_url'),
             llm_model=config_dict.get('llm_model', 'deepseek-v3.2'),
-            llm_confidence_threshold=config_dict.get('llm_confidence_threshold', 0.7)
+            llm_confidence_threshold=config_dict.get('llm_confidence_threshold', 0.7),
+            llm_toc_detection_threshold=config_dict.get('llm_toc_detection_threshold', 0.7),
+            llm_no_toc_threshold=config_dict.get('llm_no_toc_threshold', 0.8),
+            # 目录检测配置
+            toc_detection_score_threshold=config_dict.get('toc_detection_score_threshold', 30.0),
+            toc_max_scan_lines=config_dict.get('toc_max_scan_lines', 300)
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -169,7 +188,12 @@ class ParserConfig:
             'llm_api_key': self.llm_api_key,
             'llm_base_url': self.llm_base_url,
             'llm_model': self.llm_model,
-            'llm_confidence_threshold': self.llm_confidence_threshold
+            'llm_confidence_threshold': self.llm_confidence_threshold,
+            'llm_toc_detection_threshold': self.llm_toc_detection_threshold,
+            'llm_no_toc_threshold': self.llm_no_toc_threshold,
+            # 目录检测配置
+            'toc_detection_score_threshold': self.toc_detection_score_threshold,
+            'toc_max_scan_lines': self.toc_max_scan_lines
         }
 
     def save_to_yaml(self, yaml_path: str) -> None:

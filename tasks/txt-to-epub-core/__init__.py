@@ -13,6 +13,10 @@ class Inputs(typing.TypedDict):
     cover_image: str | None
     enable_smart_toc: bool
     llm_confidence_threshold: float
+    llm_toc_detection_threshold: float
+    llm_no_toc_threshold: float
+    toc_detection_score_threshold: float
+    toc_max_scan_lines: int
     llm: LLMModelOptions
 class Outputs(typing.TypedDict):
     epub_file: typing.NotRequired[str]
@@ -77,19 +81,31 @@ def main(params: Inputs, context: Context) -> Outputs:
         # Get smart TOC setting
         enable_smart_toc = params.get('enable_smart_toc', False)
         llm_confidence_threshold = params.get('llm_confidence_threshold', 0.7)
+        llm_toc_detection_threshold = params.get('llm_toc_detection_threshold', 0.7)
+        llm_no_toc_threshold = params.get('llm_no_toc_threshold', 0.8)
+        toc_detection_score_threshold = params.get('toc_detection_score_threshold', 30)
+        toc_max_scan_lines = params.get('toc_max_scan_lines', 300)
         llm_config = params.get('llm', {})
 
         # Debug logging
         print(f"=== 配置调试信息 (print) ===")
         print(f"params中的enable_smart_toc值: {params.get('enable_smart_toc')}")
         print(f"实际enable_smart_toc: {enable_smart_toc}")
-        print(f"置信度阈值: {llm_confidence_threshold}")
+        print(f"LLM置信度阈值: {llm_confidence_threshold}")
+        print(f"LLM目录检测置信度阈值: {llm_toc_detection_threshold}")
+        print(f"LLM无目录判定置信度阈值: {llm_no_toc_threshold}")
+        print(f"目录检测评分阈值: {toc_detection_score_threshold}")
+        print(f"目录最大扫描行数: {toc_max_scan_lines}")
         print(f"llm_config: {llm_config}")
 
         logger.info(f"=== 配置调试信息 ===")
         logger.info(f"params中的enable_smart_toc值: {params.get('enable_smart_toc')}")
         logger.info(f"实际enable_smart_toc: {enable_smart_toc}")
-        logger.info(f"置信度阈值: {llm_confidence_threshold}")
+        logger.info(f"LLM置信度阈值: {llm_confidence_threshold}")
+        logger.info(f"LLM目录检测置信度阈值: {llm_toc_detection_threshold}")
+        logger.info(f"LLM无目录判定置信度阈值: {llm_no_toc_threshold}")
+        logger.info(f"目录检测评分阈值: {toc_detection_score_threshold}")
+        logger.info(f"目录最大扫描行数: {toc_max_scan_lines}")
         logger.info(f"llm_config: {llm_config}")
 
         # Log smart TOC setting
@@ -104,7 +120,11 @@ def main(params: Inputs, context: Context) -> Outputs:
             llm_api_key=context.oomol_llm_env.get("api_key") if enable_smart_toc else None,
             llm_base_url=context.oomol_llm_env.get("base_url_v1") if enable_smart_toc else None,
             llm_model=llm_config.get('model', 'deepseek-v3.2') if enable_smart_toc else 'deepseek-v3.2',
-            llm_confidence_threshold=llm_confidence_threshold
+            llm_confidence_threshold=llm_confidence_threshold,
+            llm_toc_detection_threshold=llm_toc_detection_threshold,
+            llm_no_toc_threshold=llm_no_toc_threshold,
+            toc_detection_score_threshold=toc_detection_score_threshold,
+            toc_max_scan_lines=toc_max_scan_lines
         )
         # Execute conversion
         logger.info(f"Starting conversion: {txt_file} -> {epub_file}")

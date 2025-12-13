@@ -172,7 +172,7 @@ def is_valid_chapter_title(match, content: str, language: str = 'chinese') -> bo
     return True
 
 
-def remove_table_of_contents(content: str, language: str = None, llm_assistant=None) -> str:
+def remove_table_of_contents(content: str, language: str = None, llm_assistant=None, config: Optional[ParserConfig] = None) -> str:
     """
     Remove the table of contents section from the text to avoid interference with chapter recognition.
     Supports both Chinese and English table of contents recognition.
@@ -183,8 +183,12 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
     :param content: Original text content
     :param language: Language type, 'chinese' or 'english', auto-detect if None
     :param llm_assistant: Optional LLM assistant for intelligent TOC detection
+    :param config: Parser configuration (optional, uses default if None)
     :return: Text content with table of contents removed
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     print("\n" + "="*60)
     print("【目录检测】开始检测文档中是否存在目录页...")
     print("="*60)
@@ -206,7 +210,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
             logger.info("尝试使用LLM识别目录...")
             toc_result = llm_assistant.identify_table_of_contents(content[:5000], language)
 
-            if toc_result.get('has_toc') and toc_result.get('confidence', 0) > 0.7:
+            if toc_result.get('has_toc') and toc_result.get('confidence', 0) > config.llm_toc_detection_threshold:
                 print(f"【目录检测】✓ LLM确认存在目录 (置信度: {toc_result['confidence']:.2f})")
                 print(f"【目录检测】原因: {toc_result.get('reason', 'N/A')}")
                 logger.info(f"LLM确认存在目录 (置信度: {toc_result['confidence']:.2f})")
@@ -219,7 +223,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
                 print(f"【目录检测】✗ LLM判定: {'无目录' if not toc_result.get('has_toc') else '目录置信度低'} (置信度: {toc_result.get('confidence', 0):.2f})")
                 logger.info(f"LLM未检测到目录或置信度较低 (has_toc={toc_result.get('has_toc')}, confidence={toc_result.get('confidence', 0):.2f})")
                 # If LLM says no TOC with high confidence, skip TOC removal
-                if not toc_result.get('has_toc') and toc_result.get('confidence', 0) > 0.8:
+                if not toc_result.get('has_toc') and toc_result.get('confidence', 0) > config.llm_no_toc_threshold:
                     print("【目录检测】LLM高置信度判定无目录，跳过目录移除")
                     print("="*60 + "\n")
                     logger.info("LLM高置信度判定无目录，跳过目录移除")
@@ -261,47 +265,107 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
 
     # Method 2: Detect dense chapter pattern region (TOC without explicit keyword)
     if toc_start == -1:
-        print("【目录检测】方法1未发现目录关键词，尝试方法2: 密集章节模式检测...")
+        print("【目录检测】方法1未发现目录关键词，尝试方法2: 增强密集章节模式检测...")
         # Scan for regions with abnormally high density of chapter-like patterns
         window_size = 20  # Check 20 lines at a time
-        max_density = 0
-        max_density_start = -1
+        max_score = 0
+        max_score_start = -1
+        candidate_info = None
 
-        for i in range(0, min(len(lines), 500), 5):  # Only check first 500 lines
+        for i in range(0, min(len(lines), 500), 3):  # Only check first 500 lines, step by 3
             window_end = min(i + window_size, len(lines))
             window_lines = lines[i:window_end]
 
             # Count chapter-like patterns in window
             chapter_count = 0
+            short_line_count = 0  # Count of short lines (typical of TOC)
             total_chars = 0
+            consecutive_chapters = 0  # Consecutive chapter-pattern lines
+            max_consecutive = 0
+            has_page_numbers = False  # Check for page number patterns
 
-            for line in window_lines:
+            for j, line in enumerate(window_lines):
                 stripped = line.strip()
                 total_chars += len(stripped)
 
+                # Check for short lines (TOC characteristic)
+                if 5 < len(stripped) < 80:
+                    short_line_count += 1
+
                 # Check if line matches chapter pattern
+                is_chapter_line = False
                 for pattern in chapter_patterns:
                     if pattern.search(stripped):
                         # Check if it's a short line (TOC entry, not actual chapter with content)
                         if len(stripped) < 80:  # TOC entries are usually short
                             chapter_count += 1
+                            is_chapter_line = True
                         break
 
-            # Calculate density: chapters per 1000 characters
+                # Track consecutive chapter patterns
+                if is_chapter_line:
+                    consecutive_chapters += 1
+                    max_consecutive = max(max_consecutive, consecutive_chapters)
+                else:
+                    consecutive_chapters = 0
+
+                # Check for page number patterns (common in TOC)
+                if re.search(r'\d{1,4}\s*$', stripped):  # Ends with numbers (page numbers)
+                    has_page_numbers = True
+
+            # Calculate multiple scoring factors
+            score = 0
+
+            # Factor 1: Chapter density (chapters per 1000 characters)
             if total_chars > 100:  # Ensure sufficient text
                 density = (chapter_count * 1000) / total_chars
+                if density > 100:  # High density
+                    score += density * 0.5  # Weight 0.5
 
-                # High density suggests TOC
-                if density > max_density and chapter_count >= 5:
-                    max_density = density
-                    max_density_start = i
+            # Factor 2: Absolute chapter count (at least 5 chapters)
+            if chapter_count >= 5:
+                score += chapter_count * 2  # Weight 2
 
-        # If found high-density region, consider it as TOC
-        if max_density > 100:  # Threshold: >100 chapters per 1000 chars
-            toc_start = max_density_start
-            print(f"【目录检测】✓ 方法2: 检测到密集章节区域（疑似目录）从第 {toc_start+1} 行开始")
-            print(f"【目录检测】章节密度: {max_density:.1f} 章/1000字符")
-            logger.info(f"检测到密集章节区域（疑似目录）从第 {toc_start+1} 行开始，密度: {max_density:.1f}")
+            # Factor 3: Consecutive chapter patterns (strong indicator)
+            if max_consecutive >= 3:
+                score += max_consecutive * 10  # Weight 10
+
+            # Factor 4: High ratio of short lines
+            if len(window_lines) > 0:
+                short_ratio = short_line_count / len(window_lines)
+                if short_ratio > 0.6:  # More than 60% short lines
+                    score += short_ratio * 20  # Weight 20
+
+            # Factor 5: Presence of page numbers
+            if has_page_numbers:
+                score += 15  # Bonus points
+
+            # Factor 6: Early position in document (TOC usually at beginning)
+            position_bonus = max(0, 50 - i)  # Earlier lines get higher bonus
+            score += position_bonus * 0.2
+
+            # Update best candidate
+            if score > max_score and score > config.toc_detection_score_threshold:  # Use configured threshold
+                max_score = score
+                max_score_start = i
+                candidate_info = {
+                    'chapters': chapter_count,
+                    'density': density if total_chars > 100 else 0,
+                    'consecutive': max_consecutive,
+                    'short_ratio': short_ratio if len(window_lines) > 0 else 0,
+                    'has_page_nums': has_page_numbers
+                }
+
+        # If found high-score region, consider it as TOC
+        if max_score > config.toc_detection_score_threshold:  # Use configured threshold
+            toc_start = max_score_start
+            print(f"【目录检测】✓ 方法2: 检测到疑似目录区域从第 {toc_start+1} 行开始")
+            print(f"【目录检测】综合评分: {max_score:.1f}")
+            if candidate_info:
+                print(f"【目录检测】特征: 章节数={candidate_info['chapters']}, 密度={candidate_info['density']:.1f}/1000字, "
+                      f"连续章节={candidate_info['consecutive']}, 短行占比={candidate_info['short_ratio']:.1%}, "
+                      f"含页码={candidate_info['has_page_nums']}")
+            logger.info(f"检测到疑似目录区域从第 {toc_start+1} 行开始，综合评分: {max_score:.1f}")
 
     # Find TOC end
     if toc_start != -1:
@@ -348,7 +412,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
                             break
 
             # Safety: if scanned too far without finding end, limit TOC region
-            if i - toc_start > 200:
+            if i - toc_start > config.toc_max_scan_lines:
                 toc_end = i
                 logger.warning(f"目录区域过长，强制在第 {toc_end+1} 行结束")
                 break
@@ -370,7 +434,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
     return content
 
 
-def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None) -> List[Volume]:
+def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None, skip_toc_removal: bool = False) -> List[Volume]:
     """
     Split text content into three-level hierarchical structure: volumes, chapters, sections.
     Supports both Chinese and English book formats.
@@ -379,6 +443,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
     :param content: Text content
     :param config: Parser configuration (optional, uses default if None)
     :param llm_assistant: Optional LLM assistant for intelligent TOC detection
+    :param skip_toc_removal: If True, skip table of contents removal (useful when content already processed)
     :return: List of volumes containing complete hierarchical structure
     """
     if config is None:
@@ -392,7 +457,8 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
     language = detect_language(content)
 
     # Preprocessing: remove table of contents to avoid interference with content parsing
-    content = remove_table_of_contents(content, language, llm_assistant)
+    if not skip_toc_removal:
+        content = remove_table_of_contents(content, language, llm_assistant, config)
 
     # Select corresponding patterns based on language
     if language == 'english':

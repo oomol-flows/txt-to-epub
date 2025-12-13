@@ -291,24 +291,36 @@ Response Format:
         logger.info("LLM识别目录页...")
 
         if language == 'english':
-            prompt = f"""You are a document structure analysis expert. Please identify whether the following text contains a Table of Contents page.
+            prompt = f"""You are a document structure analysis expert. Please identify whether the following text contains a Table of Contents (TOC) page.
 
 【Text Sample】(first 3000 characters)
 {content_sample[:3000]}
 
 【Task】
-1. Determine if there is a Table of Contents (TOC) section
-2. If exists, identify the approximate start and end positions (by character count or line description)
-3. Explain why it's a TOC (high density of chapter titles, lack of content, etc.)
+Carefully analyze if there is a TOC section, even WITHOUT explicit "Contents" or "TOC" labels.
+
+【Key TOC Characteristics】
+1. **High density of chapter-like patterns**: Multiple lines with "Chapter X", "Part X", etc.
+2. **Consecutive short lines**: Lines with chapter names but minimal content (usually < 80 chars)
+3. **Page numbers**: Lines ending with numbers (e.g., "Chapter 1 ... 15")
+4. **Lack of narrative content**: No story text, just titles and numbers
+5. **Early position**: Usually at document beginning (first 100-500 lines)
+6. **Consistent format**: All entries follow similar pattern
+
+【Important】
+- A TOC can exist WITHOUT the word "Contents" or "Table of Contents"
+- Focus on structural patterns, not keywords
+- Look for 5+ consecutive chapter-like entries
 
 【Response Format】JSON:
 {{
   "has_toc": true/false,
   "confidence": 0.0-1.0,
-  "start_indicator": "description of where TOC starts (e.g., 'after line Contents' or 'around char 100')",
-  "end_indicator": "description of where TOC ends (e.g., 'before first long paragraph' or 'around char 2500')",
-  "reason": "why this is identified as TOC",
-  "toc_entries_count": estimated number of entries
+  "start_indicator": "description of where TOC starts (e.g., 'line 5' or 'after preface')",
+  "end_indicator": "description of where TOC ends (e.g., 'line 45' or 'before first paragraph')",
+  "reason": "detailed explanation (mention specific patterns observed)",
+  "toc_entries_count": estimated number of entries,
+  "key_evidence": ["evidence 1", "evidence 2", "evidence 3"]
 }}
 """
         else:
@@ -318,18 +330,30 @@ Response Format:
 {content_sample[:3000]}
 
 【任务】
-1. 判断是否存在目录页
-2. 如果存在，识别目录的大致开始和结束位置（通过字符数或行的描述）
-3. 说明为什么判定为目录（章节标题密集、缺少正文内容等）
+仔细分析是否存在目录页，即使**没有明确的"目录"或"CONTENTS"标识**。
+
+【目录页的关键特征】
+1. **章节模式密集**：多行包含"第X章"、"第X部"等模式
+2. **连续短行**：行内容简短（通常 < 80字符），只有章节名
+3. **页码标记**：行尾有数字（如："第一章 开始 ... 15"）
+4. **缺乏叙事内容**：没有故事正文，只有标题和数字
+5. **位置靠前**：通常在文档开头（前100-500行）
+6. **格式一致**：所有条目遵循相似格式
+
+【重要提示】
+- 目录可以没有"目录"这个词
+- 重点关注结构模式，而非关键词
+- 寻找5个以上连续的章节样式条目
 
 【输出格式】JSON:
 {{
   "has_toc": true/false,
   "confidence": 0.0-1.0,
-  "start_indicator": "目录开始位置描述（如：'目录'关键词后 或 字符100左右）",
-  "end_indicator": "目录结束位置描述（如：第一个长段落前 或 字符2500左右）",
-  "reason": "判断为目录的原因",
-  "toc_entries_count": 估计的目录条目数量
+  "start_indicator": "目录开始位置描述（如：'第5行' 或 '序言之后'）",
+  "end_indicator": "目录结束位置描述（如：'第45行' 或 '第一个长段落前'）",
+  "reason": "详细说明判断理由（提及观察到的具体模式）",
+  "toc_entries_count": 估计的目录条目数量,
+  "key_evidence": ["证据1", "证据2", "证据3"]
 }}
 """
 
@@ -870,11 +894,12 @@ class RuleBasedParserWithConfidence:
         from parser_config import ParserConfig, DEFAULT_CONFIG
         self.config = config or DEFAULT_CONFIG
 
-    def parse_with_confidence(self, content: str) -> Dict:
+    def parse_with_confidence(self, content: str, skip_toc_removal: bool = False) -> Dict:
         """
         解析内容并返回置信度
 
         :param content: 文本内容
+        :param skip_toc_removal: If True, skip TOC removal (useful when content already processed)
         :return: {
             'volumes': [...],
             'chapters': [...],
@@ -885,7 +910,7 @@ class RuleBasedParserWithConfidence:
         from parser import parse_hierarchical_content, detect_language
 
         # 使用现有解析器
-        volumes = parse_hierarchical_content(content)
+        volumes = parse_hierarchical_content(content, skip_toc_removal=skip_toc_removal)
 
         # 检测语言
         language = detect_language(content)
@@ -994,11 +1019,12 @@ class HybridParser:
                 model=llm_model or self.config.llm_model
             )
 
-    def parse(self, content: str):
+    def parse(self, content: str, skip_toc_removal: bool = False):
         """
         混合解析流程
 
         :param content: 文本内容
+        :param skip_toc_removal: If True, skip TOC removal (useful when content already processed)
         :return: 卷列表
         """
         from parser import detect_language, parse_hierarchical_content
@@ -1012,11 +1038,11 @@ class HybridParser:
         logger.info("阶段1: 规则解析...")
         print(">>> [HybridParser] 阶段1: 规则解析...")
 
-        # 调用规则解析，传递LLM助手用于目录识别
-        volumes = parse_hierarchical_content(content, self.config, self.llm_assistant)
+        # 调用规则解析，传递skip_toc_removal参数
+        volumes = parse_hierarchical_content(content, self.config, self.llm_assistant, skip_toc_removal=skip_toc_removal)
 
         # 计算整体置信度
-        rule_result = self.rule_parser.parse_with_confidence(content)
+        rule_result = self.rule_parser.parse_with_confidence(content, skip_toc_removal=skip_toc_removal)
         confidence = rule_result['overall_confidence']
         threshold = self.config.llm_confidence_threshold
         print(f">>> [HybridParser] 规则解析置信度: {confidence:.2f}, 阈值: {threshold:.2f}")

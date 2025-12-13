@@ -13,7 +13,9 @@
       "Bash(pip3 install:*)",
       "Bash(export OPENAI_API_KEY=\"bce-v3/ALTAK-1aKPyBQXbAFVn6IqQRJpv/fa16d36468901d7081f659b680fbc8d62f319e41\")",
       "Bash(export:*)",
-      "Bash(poetry add:*)"
+      "Bash(poetry add:*)",
+      "Bash(python test_toc_detection.py:*)",
+      "Bash(poetry run python:*)"
     ],
     "deny": [],
     "ask": []

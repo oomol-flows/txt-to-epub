@@ -209,6 +209,23 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             logger.info(f"config.llm_base_url: {config.llm_base_url}")
             logger.info(f"config.llm_model: {config.llm_model}")
 
+            # Preprocessing: Remove table of contents once before all parsing
+            from .parser import remove_table_of_contents, detect_language
+            language = detect_language(content)
+
+            # Create LLM assistant if needed for TOC detection
+            llm_assistant = None
+            if config.enable_llm_assistance and LLM_AVAILABLE:
+                from .llm_parser_assistant import LLMParserAssistant
+                llm_assistant = LLMParserAssistant(
+                    api_key=config.llm_api_key,
+                    base_url=config.llm_base_url,
+                    model=config.llm_model
+                )
+
+            # Remove table of contents once
+            content = remove_table_of_contents(content, language, llm_assistant, config)
+
             # 使用混合解析器（如果启用LLM且可用）
             if config.enable_llm_assistance and LLM_AVAILABLE:
                 print(">>> 进入混合解析器分支")
@@ -222,7 +239,8 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                         config=config
                     )
                     print(">>> HybridParser创建成功,开始解析...")
-                    volumes = parser.parse(content)
+                    # Skip TOC removal since we already did it
+                    volumes = parser.parse(content, skip_toc_removal=True)
                     print(f">>> 解析完成,生成了 {len(volumes)} 个卷")
 
                     # 输出LLM统计信息
@@ -237,7 +255,8 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     import traceback
                     print(f">>> 异常堆栈:\n{traceback.format_exc()}")
                     logger.warning(f"混合解析器失败，降级到纯规则解析: {e}")
-                    volumes = parse_hierarchical_content(content, config)
+                    # Skip TOC removal since we already did it
+                    volumes = parse_hierarchical_content(content, config, skip_toc_removal=True)
             else:
                 # 使用传统规则解析
                 print(">>> 进入传统规则解析分支")
@@ -247,7 +266,8 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                 else:
                     print(">>> 原因: 用户未启用智能分析")
                     logger.info("使用传统规则解析")
-                volumes = parse_hierarchical_content(content, config)
+                # Skip TOC removal since we already did it
+                volumes = parse_hierarchical_content(content, config, skip_toc_removal=True)
 
             # Validate parsing results
             if not volumes:

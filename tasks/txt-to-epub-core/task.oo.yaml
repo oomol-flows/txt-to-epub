@@ -41,6 +41,41 @@ inputs_def:
       maximum: 1
     value: 0.7
     nullable: false
+  - handle: llm_toc_detection_threshold
+    description: LLM confidence threshold for detecting TOC (0.0-1.0). LLM must
+      exceed this confidence to confirm a TOC exists.
+    json_schema:
+      type: number
+      minimum: 0
+      maximum: 1
+    value: 0.7
+    nullable: false
+  - handle: llm_no_toc_threshold
+    description: LLM confidence threshold for confirming NO TOC (0.0-1.0). If LLM
+      confidence exceeds this when saying no TOC, skip TOC removal.
+    json_schema:
+      type: number
+      minimum: 0
+      maximum: 1
+    value: 0.8
+    nullable: false
+  - handle: toc_detection_score_threshold
+    description: Minimum score threshold for TOC detection (0-100). Higher values
+      require stronger evidence of a table of contents.
+    json_schema:
+      type: number
+      minimum: 0
+      maximum: 100
+    value: 30
+    nullable: false
+  - handle: toc_max_scan_lines
+    description: Maximum number of lines to scan for TOC detection (safety limit)
+    json_schema:
+      type: integer
+      minimum: 50
+      maximum: 1000
+    value: 300
+    nullable: false
   - handle: llm
     json_schema:
       ui:options:
