@@ -25,7 +25,7 @@ inputs_def:
     value:
     nullable: true
   - group: Smart TOC Analysis
-    collapsed: false
+    collapsed: true
   - handle: enable_smart_toc
     description: Enable LLM-powered smart table of contents analysis
     json_schema:

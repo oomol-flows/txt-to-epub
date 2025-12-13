@@ -41,8 +41,7 @@ def main(params: Inputs, context: Context) -> Outputs | None:
                 "cover_image": file_path
             }
         except Exception as e:
-            context.log(f"下载封面图片失败: {str(e)}")
-            return None
+            raise RuntimeError(f"下载封面图片失败: {str(e)}") from e
     
     # 如果两个参数都不存在，返回 None
     return None

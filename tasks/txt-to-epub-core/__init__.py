@@ -56,13 +56,7 @@ def main(params: Inputs, context: Context) -> Outputs:
     
     if not txt_file or not epub_dir:
         logger.error("Missing required parameters: both txt_file and epub_dir cannot be empty")
-        return {
-            "epub_file": "",
-            "validation_passed": False,
-            "validation_report": "Conversion failed: missing required parameters",
-            "volumes_count": 0,
-            "chapters_count": 0
-        }
+        raise ValueError("Conversion failed: both txt_file and epub_dir cannot be empty")
     
     try:
         # Generate book title (use filename if not provided)
@@ -136,23 +130,17 @@ def main(params: Inputs, context: Context) -> Outputs:
             cover_image=cover_image,
             config = config
         )
-        
-        logger.info(f"Conversion completed: {epub_file}")
         context.preview({
             "type": "markdown",
             "data": result["validation_report"]
         })
+        logger.info(f"Conversion completed: {epub_file}")
+
         # Return complete result information
         return {
             "epub_file": result["output_file"],
         }
-        
+
     except Exception as e:
         logger.error(f"Error occurred during conversion: {e}")
-        context.preview({
-            "type": "markdown",
-            "data":  f"Conversion failed: {str(e)}"
-        })
-        return {
-            "epub_file": ""
-        }
+        raise RuntimeError(f"Conversion failed: {str(e)}") from e
