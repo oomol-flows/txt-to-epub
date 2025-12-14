@@ -48,6 +48,9 @@ def main(params: Inputs, context: Context) -> Outputs:
     logger.info("========== TXT to EPUB 转换开始 ==========")
     print("========== TXT to EPUB 转换开始 ==========")  # 强制输出,确保代码执行到这里
 
+    # 上报初始进度
+    context.report_progress(0)
+
     # Validate required parameters
     txt_file = params.get('txt_file')
     epub_dir = params.get('epub_dir')
@@ -128,7 +131,8 @@ def main(params: Inputs, context: Context) -> Outputs:
             title=book_title,
             author=author,
             cover_image=cover_image,
-            config = config
+            config=config,
+            context=context  # 传递 context 用于进度上报
         )
         context.preview({
             "type": "markdown",

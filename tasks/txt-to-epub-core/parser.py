@@ -20,8 +20,42 @@ class ChinesePatterns:
     # Volume/Part/Book patterns
     VOLUME_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})[卷部篇]\s+[^\n]*)')
     
-    # Chapter patterns
-    CHAPTER_PATTERN = re.compile(r'(?:^|(?<=\n))(\s*(?:第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})章\s+[^\n]+|(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)\s+[^\n]*)\s*)(?=\n|$)', re.MULTILINE)
+    # Chapter patterns - 宽进策略：章节号后面的标题文字可以为空
+    # 匹配 "第X章" (X可以是中文数字或阿拉伯数字，包括带前导零的如007)，后面可选标题文字
+    # 关键改进：
+    # 1. \d{1,4} 支持最多4位数字（如0001、007）
+    # 2. 标题文字可以为空，也可以有内容
+    # 3. 宽进原则：先匹配，后面用 is_valid_chapter_title 来严格验证
+    #
+    # 标题格式支持：
+    # - 第X章（只有章节号）
+    # - 第X章 标题文字（有标题）
+    # - 第X章：标题文字（冒号分隔）
+    # - 第X章　标题文字（全角空格）
+    CHAPTER_PATTERN = re.compile(
+        r'(?:^|(?<=\n))'  # 必须在行首（\n 之后或文件开头）
+        r'('  # 捕获组1：整个章节标题
+            r'[ \t\r]*'  # 可选的前导空白（包括\r，支持Windows换行符）
+            r'(?:'  # 非捕获组：章节类型
+                # 普通章节：第X章 [标题]
+                r'第([一二三四五六七八九十百千万壹贰叁肴伍陆柒捌玖拾佰仟萬]+|\d{1,4})章'  # 捕获组2：章节号
+                r'(?:'  # 标题部分（可选）
+                    r'(?:[ \t\u3000]+|：|:)'  # 分隔符：空格、制表符、全角空格、冒号
+                    r'[^\r\n，。！？；:;,.!?]{0,50}'  # 标题文字（不包含换行和句子结束标点）
+                r')?'
+                r'|'  # 或者
+                # 特殊章节
+                r'(?:番外|番外篇|外传|特别篇|插话|后记|尾声|终章|楔子|序章)'
+                r'(?:'
+                    r'(?:[ \t\u3000]+|：|:)'
+                    r'[^\r\n，。！？；:;,.!?]{0,50}'
+                r')?'
+            r')'
+        r')'  # 捕获组1结束
+        r'[ \t]*'  # 可选的尾随空白
+        r'(?=\r?\n|$)',  # 后面必须是换行（支持\r\n或\n）或文件结束
+        re.MULTILINE
+    )
     
     # Section patterns
     SECTION_PATTERN = re.compile(r'(第([一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+|\d{1,3})节\s+[^\n]*)')
@@ -93,6 +127,190 @@ def detect_language(content: str) -> str:
         return 'chinese'
     else:
         return 'english'
+
+
+def is_simple_chapter_title(title: str, language: str = 'chinese') -> bool:
+    """
+    判断章节标题是否过于简单（只有章节号，没有实质内容）
+
+    :param title: 章节标题
+    :param language: 语言类型
+    :return: True 如果是简单的章节号，False 如果有实质内容
+    """
+    if not title:
+        return True
+
+    title = title.strip()
+
+    if language == 'chinese':
+        # 匹配只有"第X章"或"第X章 "的标题
+        simple_patterns = [
+            r'^第[一二三四五六七八九十百千万\d]+章\s*$',
+            r'^第[一二三四五六七八九十百千万\d]+章\s+[\s\u3000]*$',  # 包含全角空格
+            r'^\d+[\s\u3000]*$',  # 只有数字
+            r'^第\d+章\s*$',
+            r'^第\d+章\s+[\s\u3000]*$'
+        ]
+
+        for pattern in simple_patterns:
+            if re.match(pattern, title):
+                return True
+
+        # 如果标题长度小于等于5个字符，且包含"第"和"章"，认为是简单标题
+        if len(title) <= 5 and '第' in title and '章' in title:
+            return True
+
+    else:
+        # 英文简单标题模式
+        simple_patterns = [
+            r'^Chapter\s+\d+\s*$',
+            r'^Ch\.?\s+\d+\s*$',
+            r'^Chapter\s+[IVXivx]+\s*$',
+            r'^\d+\s*$'
+        ]
+
+        for pattern in simple_patterns:
+            if re.match(pattern, title, re.IGNORECASE):
+                return True
+
+    return False
+
+
+def extract_meaningful_title(chapter_content: str, language: str = 'chinese', max_length: int = 20) -> str:
+    """
+    从章节内容中提取有意义的标题
+
+    :param chapter_content: 章节内容
+    :param language: 语言类型
+    :param max_length: 标题最大长度
+    :return: 提取的标题
+    """
+    if not chapter_content or not chapter_content.strip():
+        return ""
+
+    content = chapter_content.strip()
+
+    # 移除常见的开头词汇
+    if language == 'chinese':
+        # 移除"话说"、"且说"、"却说"等开头
+        content = re.sub(r'^(话说|且说|却说|却说|正是|正所谓|古人云|俗语说)\s*', '', content)
+
+        # 寻找第一个完整的句子
+        sentences = re.split(r'[。！？；]', content)
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if len(sentence) >= 5 and len(sentence) <= max_length * 2:  # 中文字符
+                # 检查是否包含有意义的内容
+                if re.search(r'[的之在了是]', sentence):  # 包含有意义的连接词
+                    # 截取前max_length个字符
+                    title = sentence[:max_length]
+                    # 确保不以不完整词语结束
+                    if len(title) < len(sentence):
+                        # 尝试在标点或自然断点处结束
+                        break_points = [',', '，', ':', '：', ' ', '\u3000']
+                        for bp in break_points:
+                            if bp in title:
+                                title = title.rsplit(bp, 1)[0]
+                                break
+                    return title.strip()
+
+        # 如果没有找到合适的句子，取前几个字符
+        if len(content) >= 5:
+            title = content[:max_length]
+            # 避免切断词语
+            if len(title) < len(content):
+                # 寻找最后一个空格或标点
+                for i in range(len(title)-1, 0, -1):
+                    if title[i] in ' ，。！？；：':
+                        title = title[:i]
+                        break
+            return title.strip()
+
+    else:
+        # 英文处理
+        sentences = re.split(r'[.!?;]', content)
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if len(sentence) >= 10 and len(sentence) <= max_length * 2:
+                # 包含有意义的词
+                if re.search(r'\b(the|a|an|is|are|was|were|in|on|at|to|for)\b', sentence, re.IGNORECASE):
+                    title = sentence[:max_length]
+                    # 在合适的位置截断
+                    words = title.split()
+                    if len(words) > 1:
+                        title = ' '.join(words[:-1]) if len(' '.join(words)) > max_length else ' '.join(words)
+                    return title.strip()
+
+        #  fallback
+        if len(content) >= 10:
+            title = content[:max_length]
+            words = title.split()
+            if len(words) > 1:
+                title = ' '.join(words[:-1])
+            return title.strip()
+
+    return ""
+
+
+def enhance_chapter_title(chapter_title: str, chapter_content: str, language: str = 'chinese', llm_assistant=None) -> str:
+    """
+    增强章节标题：如果标题过于简单，尝试使用 LLM 或从内容中提取有意义的标题
+
+    :param chapter_title: 原始章节标题
+    :param chapter_content: 章节内容
+    :param language: 语言类型
+    :param llm_assistant: LLM 助手实例（可选）
+    :return: 增强后的标题
+    """
+    # 如果标题已经有实质内容，直接返回
+    if not is_simple_chapter_title(chapter_title, language):
+        return chapter_title
+
+    # 提取章节号
+    if language == 'chinese':
+        chapter_num_match = re.search(r'(第[一二三四五六七八九十百千万\d]+章)', chapter_title)
+        chapter_number = chapter_num_match.group(1) if chapter_num_match else chapter_title
+    else:
+        chapter_num_match = re.search(r'(Chapter\s+[\dIVXivx]+)', chapter_title, re.IGNORECASE)
+        chapter_number = chapter_num_match.group(1) if chapter_num_match else chapter_title
+
+    # 优先使用 LLM 生成标题
+    if llm_assistant:
+        try:
+            logger.info(f"使用 LLM 生成章节标题: {chapter_number}")
+            result = llm_assistant.generate_chapter_title(
+                chapter_number=chapter_number,
+                chapter_content=chapter_content,
+                language=language,
+                max_content_length=1000
+            )
+
+            # 如果 LLM 生成成功且置信度足够高
+            if result.get('title') and result.get('confidence', 0) > 0.5:
+                generated_title = result['title'].strip()
+                if generated_title:
+                    # 组合章节号和生成的标题
+                    if language == 'chinese':
+                        return f"{chapter_number} {generated_title}"
+                    else:
+                        return f"{chapter_number}: {generated_title}"
+            else:
+                logger.warning(f"LLM 生成标题置信度过低或为空: {result.get('confidence', 0):.2f}")
+        except Exception as e:
+            logger.warning(f"LLM 生成标题失败，回退到规则提取: {e}")
+
+    # 回退方案：从内容中提取有意义的标题
+    meaningful_title = extract_meaningful_title(chapter_content, language)
+
+    if meaningful_title:
+        # 保留原始章节号，添加实质内容
+        if language == 'chinese':
+            return f"{chapter_number} {meaningful_title}"
+        else:
+            return f"{chapter_number}: {meaningful_title}"
+
+    # 如果无法提取有意义的内容，返回原始标题
+    return chapter_title
 
 
 def is_valid_chapter_title(match, content: str, language: str = 'chinese') -> bool:
@@ -434,7 +652,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
     return content
 
 
-def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None, skip_toc_removal: bool = False) -> List[Volume]:
+def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None, skip_toc_removal: bool = False, context=None) -> List[Volume]:
     """
     Split text content into three-level hierarchical structure: volumes, chapters, sections.
     Supports both Chinese and English book formats.
@@ -475,7 +693,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
 
     if not volume_matches:
         # No volumes, only chapters
-        chapters = parse_chapters_from_content(content, language, config)
+        chapters = parse_chapters_from_content(content, language, config, llm_assistant, context)
         # Validate and merge short chapters if enabled
         if config.enable_length_validation:
             chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
@@ -490,7 +708,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
         first_volume_start = volume_matches[0].start()
         if first_volume_start > 0 and content[:first_volume_start].strip():
             pre_content = content[:first_volume_start]
-            pre_chapters = parse_chapters_from_content(pre_content, language, config)
+            pre_chapters = parse_chapters_from_content(pre_content, language, config, llm_assistant, context)
             # Validate and merge short chapters if enabled
             if config.enable_length_validation:
                 pre_chapters = validate_and_merge_chapters(pre_chapters, language, config.min_chapter_length)
@@ -514,7 +732,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
             # Check for duplicate volume titles, skip if duplicate
             if volume_title and volume_title not in seen_volume_titles:
                 seen_volume_titles.add(volume_title)
-                chapters = parse_chapters_from_content(volume_content, language, config)
+                chapters = parse_chapters_from_content(volume_content, language, config, llm_assistant, context)
                 # Validate and merge short chapters if enabled
                 if config.enable_length_validation:
                     chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
@@ -534,7 +752,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
     return volumes
 
 
-def parse_chapters_from_content(content: str, language: str = 'chinese', config: Optional[ParserConfig] = None) -> List[Chapter]:
+def parse_chapters_from_content(content: str, language: str = 'chinese', config: Optional[ParserConfig] = None, llm_assistant=None, context=None) -> List[Chapter]:
     """
     Split chapters and sections from given content.
     Supports both Chinese and English chapter formats.
@@ -592,6 +810,14 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
 
     # Process each matched chapter
     seen_titles = set()  # Track seen chapter titles
+    total_chapters = len(chapter_matches)
+
+    # 记录开始处理章节
+    if llm_assistant:
+        logger.info(f"开始使用 LLM 生成章节标题，共 {total_chapters} 个章节")
+        print(f"\n{'='*60}")
+        print(f"开始智能生成章节标题（共 {total_chapters} 章）")
+        print(f"{'='*60}")
 
     for i, match in enumerate(chapter_matches):
         chapter_title = match.group(1).strip()
@@ -602,18 +828,50 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
         chapter_content = content[chapter_start:chapter_end].strip('\n\r')
 
         if chapter_title and chapter_title not in seen_titles:  # Ensure title is not empty and not duplicate
-            seen_titles.add(chapter_title)
+            # 计算并上报进度：5% 到 95% 之间（生成目录阶段占 90%）
+            progress_percent = int((i + 1) / total_chapters * 100)
+            if context:
+                # 将章节处理进度映射到 5% - 95% 区间
+                mapped_progress = 5 + int((i + 1) / total_chapters * 90)
+                context.report_progress(mapped_progress)
+
+            # 打印进度
+            if llm_assistant:
+                print(f"[{i+1}/{total_chapters}] ({progress_percent}%) 处理章节: {chapter_title[:20]}...")
+
+            # 增强章节标题：如果标题过于简单，尝试使用 LLM 或从内容中提取有意义的标题
+            enhanced_title = enhance_chapter_title(chapter_title, chapter_content, language, llm_assistant)
+
+            # 如果标题被增强了，记录日志
+            if enhanced_title != chapter_title:
+                logger.info(f"[{i+1}/{total_chapters}] Enhanced: '{chapter_title}' -> '{enhanced_title}'")
+                if llm_assistant:
+                    print(f"  ✓ 生成标题: {enhanced_title}")
+            else:
+                if llm_assistant:
+                    print(f"  - 保留原标题")
+
+            final_title = enhanced_title
+            seen_titles.add(final_title)
+
             # Further analyze chapter content for sections
             sections = parse_sections_from_content(chapter_content, language)
             if sections:
                 # If has sections, chapter content is empty (all content is in sections)
-                chapter_list.append(Chapter(title=chapter_title, content="", sections=sections))
+                chapter_list.append(Chapter(title=final_title, content="", sections=sections))
             else:
                 # If no sections, chapter directly contains content
                 if not chapter_content.strip():
                     empty_content = "此章节内容为空。" if language == 'chinese' else "This chapter is empty."
                     chapter_content = empty_content
-                chapter_list.append(Chapter(title=chapter_title, content=chapter_content, sections=[]))
+                chapter_list.append(Chapter(title=final_title, content=chapter_content, sections=[]))
+
+    # 完成日志
+    if llm_assistant:
+        print(f"{'='*60}")
+        print(f"✓ 章节标题生成完成！共处理 {total_chapters} 个章节")
+        print(f"{'='*60}\n")
+        logger.info(f"章节标题生成完成，共处理 {total_chapters} 个章节")
 
     return chapter_list
 

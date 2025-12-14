@@ -32,11 +32,13 @@ nodes:
       - handle: llm_no_toc_threshold
         value: 0.8
     task: self::txt-to-epub-core
-  - node_id: txt-to-epub#1
-    title: "%txt-to-epub-1%"
+  - node_id: txt-to-epub#2
+    title: "文本文档转 EPUB #2"
     inputs_from:
       - handle: txt_file
+        value: /oomol-driver/oomol-storage/book_source/这才不是我想要的命运》（1-845章）作者：2473530790.txt
       - handle: epub_dir
+        value: /oomol-driver/oomol-storage/audio
       - handle: book_title
         value: null
       - handle: author
@@ -44,3 +46,35 @@ nodes:
       - handle: cover_image
         value: null
     subflow: self::txt-to-epub
+  - node_id: txt-to-epub-core#2
+    title: "Txt 转 Epub 核心 #2"
+    inputs_from:
+      - handle: txt_file
+        value: /oomol-driver/oomol-storage/book_source/这才不是我想要的命运》（1-845章）作者：2473530790.txt
+      - handle: epub_dir
+        value: /oomol-driver/oomol-storage/book_source
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+      - handle: enable_smart_toc
+        value: true
+      - handle: llm_confidence_threshold
+        value: 1
+      - handle: llm_toc_detection_threshold
+        value: 0.7
+      - handle: llm_no_toc_threshold
+        value: 0.8
+      - handle: toc_detection_score_threshold
+        value: 30
+      - handle: toc_max_scan_lines
+        value: 300
+      - handle: llm
+        value:
+          model: oomol-chat
+          temperature: 0
+          top_p: 0.5
+          max_tokens: 128000
+    task: self::txt-to-epub-core

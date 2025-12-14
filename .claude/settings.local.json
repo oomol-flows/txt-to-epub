@@ -1,21 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "mcp__oomol__getTaskResult",
-      "mcp__oomol__listRunningTasks",
-      "mcp__oomol__refreshEditors",
-      "mcp__oomol__listBlocks",
-      "mcp__oomol__listBlockHandles",
-      "mcp__oomol__searchPackages",
-      "mcp__oomol__usePackage",
-      "Bash(python tests/test_parser.py:*)",
-      "Bash(python3:*)",
-      "Bash(pip3 install:*)",
-      "Bash(export OPENAI_API_KEY=\"bce-v3/ALTAK-1aKPyBQXbAFVn6IqQRJpv/fa16d36468901d7081f659b680fbc8d62f319e41\")",
-      "Bash(export:*)",
-      "Bash(poetry add:*)",
-      "Bash(python test_toc_detection.py:*)",
-      "Bash(poetry run python:*)"
+      "Bash(cat:*)",
+      "Bash(iconv:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

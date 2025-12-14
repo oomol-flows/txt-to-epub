@@ -137,7 +137,8 @@ def _write_epub_file(epub_file: str, book: epub.EpubBook) -> None:
 
 def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                 author: str = 'Unknown', cover_image: Optional[str] = None,
-                config: Optional[ParserConfig] = None, show_progress: bool = True) -> Dict[str, Any]:
+                config: Optional[ParserConfig] = None, show_progress: bool = True,
+                context=None) -> Dict[str, Any]:
     """
     Convert text file to EPUB format e-book, supports Chinese content.
 
@@ -148,6 +149,7 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
     :param cover_image: Cover image path (optional)
     :param config: Parser configuration (optional)
     :param show_progress: Show progress bar (optional, default True)
+    :param context: OOMOL Context object for progress reporting (optional)
     """
     if config is None:
         config = DEFAULT_CONFIG
@@ -167,6 +169,10 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
 
     logger.info(f"Starting conversion: {txt_file} -> {epub_file}")
 
+    # Report initial progress (already at 0% from __init__.py)
+    if context:
+        context.report_progress(1)  # 开始转换
+
     # Disable progress bar if tqdm not available
     if not TQDM_AVAILABLE and show_progress:
         logger.warning("tqdm not installed, progress bar disabled")
@@ -179,6 +185,9 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             book = _create_epub_book(title, author, cover_image)
             pbar.update(1)
 
+            if context:
+                context.report_progress(2)  # 创建EPUB完成
+
             # Step 2: Read and analyze text content
             pbar.set_description("读取文本文件")
             content = _read_txt_file(txt_file)
@@ -190,6 +199,9 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
 
             logger.info(f"File content length: {len(content)} characters")
             pbar.update(1)
+
+            if context:
+                context.report_progress(5)  # 读取文件完成（生成目录之前 5%）
 
             # Step 3: Parse hierarchical content
             pbar.set_description("解析文档结构")
@@ -256,7 +268,8 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     print(f">>> 异常堆栈:\n{traceback.format_exc()}")
                     logger.warning(f"混合解析器失败，降级到纯规则解析: {e}")
                     # Skip TOC removal since we already did it
-                    volumes = parse_hierarchical_content(content, config, skip_toc_removal=True)
+                    # 即使降级，也传递 llm_assistant 用于标题生成
+                    volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context)
             else:
                 # 使用传统规则解析
                 print(">>> 进入传统规则解析分支")
@@ -267,7 +280,8 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     print(">>> 原因: 用户未启用智能分析")
                     logger.info("使用传统规则解析")
                 # Skip TOC removal since we already did it
-                volumes = parse_hierarchical_content(content, config, skip_toc_removal=True)
+                # 如果有 llm_assistant，也传递给规则解析器用于标题生成
+                volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context)
 
             # Validate parsing results
             if not volumes:
@@ -277,8 +291,12 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             logger.info(f"Parsing completed, generated {len(volumes)} volumes")
             pbar.update(1)
 
+            # 章节解析完成，上报 95% 进度
+            if context:
+                context.report_progress(95)
+
             # Step 4: Add volumes, chapters and sections to book
-            pbar.set_description("生成章节内容")
+            pbar.set_description("生成EPUB文件")
             chapter_items = []
             toc_structure = []
             chapter_counter = 1
@@ -286,6 +304,9 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
 
             # Calculate total chapters for sub-progress
             total_chapters = sum(len(volume.chapters) for volume in volumes)
+
+            # Track progress for context reporting (5% to 95% = 90% range)
+            processed_chapters = 0
 
             with tqdm(total=total_chapters, desc="  处理章节", disable=not show_progress,
                      leave=False, ncols=80) as chapter_pbar:
@@ -337,6 +358,12 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                             chapter_counter += 1
                             chapter_pbar.update(1)
 
+                            # Report progress to context (5% to 95% range)
+                            processed_chapters += 1
+                            if context and total_chapters > 0:
+                                progress = 5 + int((processed_chapters / total_chapters) * 90)
+                                context.report_progress(progress)
+
                         # Add volume to table of contents structure: volume title + hierarchical structure of chapters and sections below it
                         toc_structure.append((volume_link, volume_chapters))
                         volume_counter += 1
@@ -377,6 +404,12 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                             chapter_counter += 1
                             chapter_pbar.update(1)
 
+                            # Report progress to context (5% to 95% range)
+                            processed_chapters += 1
+                            if context and total_chapters > 0:
+                                progress = 5 + int((processed_chapters / total_chapters) * 90)
+                                context.report_progress(progress)
+
             pbar.update(1)
 
             # Step 5: Set book structure and write file
@@ -394,6 +427,10 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             os.makedirs(os.path.dirname(epub_file), exist_ok=True)
             _write_epub_file(epub_file, book)
             pbar.update(1)
+
+            # EPUB 文件写入完成，上报 100% 进度
+            if context:
+                context.report_progress(100)
 
         # Verify conversion content integrity
         logger.info("Starting conversion content integrity verification...")

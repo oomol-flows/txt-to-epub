@@ -3,7 +3,6 @@
   "a-tool-for-converting-txt-format-text-files-to-epub-ebooks-with": "一款功能强大且优雅的工具，用于将文本文件转换为格式精美的 EPUB 电子书。非常适合出版商、作家和读者将纯文本文档转换为专业品质的数字图书。",
   "test": "测试",
   "txt-to-epub-core-1": "Txt 转 Epub 核心 #1",
-  "txt-to-epub-1": "Txt 转 Epub #1",
   "extract-first-800-characters": "提取前 800 个字符",
   "extracts-the-first-800-characters-from-a-txt-file-and-returns-th": "从 TXT 文件中提取前 800 个字符并返回文件名",
   "path-to-the-txt-file-to-read": "要读取的 TXT 文件路径",

@@ -453,6 +453,80 @@ Carefully analyze if there is a TOC section, even WITHOUT explicit "Contents" or
         logger.info(f"识别格式: {result.get('format_type', 'unknown')}")
         return result
 
+    def generate_chapter_title(
+        self,
+        chapter_number: str,
+        chapter_content: str,
+        language: str = 'chinese',
+        max_content_length: int = 400
+    ) -> Dict:
+        """
+        使用 LLM 根据章节内容生成合适的章节标题
+
+        :param chapter_number: 章节号（如 "第007章", "Chapter 7"）
+        :param chapter_content: 章节内容（开头部分）
+        :param language: 语言类型
+        :param max_content_length: 用于分析的最大内容长度（默认400字符，约200个汉字）
+        :return: 包含生成标题的字典
+        """
+        logger.info(f"LLM生成章节标题: {chapter_number}")
+
+        # 限制内容长度 - 减少到400字符以提高速度
+        content_sample = chapter_content[:max_content_length].strip()
+
+        if language == 'english':
+            # 精简英文提示词
+            prompt = f"""Generate a 3-8 word chapter title for: {chapter_number}
+
+Content: {content_sample}
+
+Requirements: Concise, meaningful, avoid dialogue quotes.
+
+JSON response:
+{{"title": "title text", "confidence": 0.0-1.0}}"""
+        else:
+            # 精简中文提示词
+            prompt = f"""为章节生成3-12字的标题：{chapter_number}
+
+内容：{content_sample}
+
+要求：简洁有意义，避免对话引号。
+
+JSON格式：
+{{"title": "标题", "confidence": 0.0-1.0}}"""
+
+        try:
+            response = self._call_llm(prompt, temperature=0.3, max_tokens=100)
+            result = json.loads(response)
+
+            # 验证结果
+            if 'title' not in result:
+                logger.warning("LLM 响应缺少 'title' 字段")
+                result['title'] = ""
+
+            if 'confidence' not in result:
+                result['confidence'] = 0.5
+
+            logger.info(f"✓ 生成标题: {result.get('title', 'N/A')} (置信度: {result.get('confidence', 0):.2f})")
+            return result
+
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON解析失败（标题生成）: {e}, 原始响应: {response[:200] if 'response' in locals() else 'N/A'}")
+            return {
+                'title': "",
+                'confidence': 0.0,
+                'reason': f'解析失败: {str(e)}',
+                'error': str(e)
+            }
+        except Exception as e:
+            logger.error(f"生成标题失败: {e}")
+            return {
+                'title': "",
+                'confidence': 0.0,
+                'reason': f'生成失败: {str(e)}',
+                'error': str(e)
+            }
+
     def _build_chapter_analysis_prompt(
         self,
         candidates: List[ChapterCandidate],
@@ -656,39 +730,73 @@ Please provide judgment for each candidate in JSON format:
                 }
             ]
 
-            # 调用OpenAI API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                max_tokens=max_tokens or self.max_tokens,
-                temperature=temperature,
-                response_format={"type": "json_object"}  # 强制JSON输出
-            )
+            # 确定实际使用的max_tokens
+            actual_max_tokens = max_tokens or self.max_tokens
 
-            # 提取响应文本
-            content = response.choices[0].message.content
+            # 如果max_tokens > 5000,必须使用stream=True
+            use_streaming = actual_max_tokens > 5000
 
-            # 更新统计
-            usage = response.usage
-            self.stats['total_input_tokens'] += usage.prompt_tokens
-            self.stats['total_output_tokens'] += usage.completion_tokens
+            if use_streaming:
+                # 使用流式调用
+                stream = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    max_tokens=actual_max_tokens,
+                    temperature=temperature,
+                    response_format={"type": "json_object"},
+                    stream=True
+                )
 
-            # 计算成本
-            model_key = self.model
-            if model_key not in self.pricing:
-                # 尝试匹配前缀
-                for key in self.pricing:
-                    if self.model.startswith(key):
-                        model_key = key
-                        break
+                # 收集流式响应
+                content = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content += chunk.choices[0].delta.content
 
-            if model_key in self.pricing:
-                pricing = self.pricing[model_key]
-                input_cost = usage.prompt_tokens * pricing['input'] / 1000
-                output_cost = usage.completion_tokens * pricing['output'] / 1000
-                self.stats['total_cost'] += input_cost + output_cost
+                # 注意: 流式响应没有usage信息,使用估算值
+                # 粗略估算: 1 token ≈ 4 characters for Chinese, 1.3 for English
+                estimated_prompt_tokens = len(prompt) // 3
+                estimated_completion_tokens = len(content) // 3
 
-            logger.debug(f"LLM调用成功: {usage.prompt_tokens} in + {usage.completion_tokens} out tokens")
+                self.stats['total_input_tokens'] += estimated_prompt_tokens
+                self.stats['total_output_tokens'] += estimated_completion_tokens
+
+                logger.debug(f"LLM流式调用成功: ~{estimated_prompt_tokens} in + ~{estimated_completion_tokens} out tokens (估算)")
+
+            else:
+                # 使用非流式调用
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    max_tokens=actual_max_tokens,
+                    temperature=temperature,
+                    response_format={"type": "json_object"}
+                )
+
+                # 提取响应文本
+                content = response.choices[0].message.content
+
+                # 更新统计
+                usage = response.usage
+                self.stats['total_input_tokens'] += usage.prompt_tokens
+                self.stats['total_output_tokens'] += usage.completion_tokens
+
+                # 计算成本
+                model_key = self.model
+                if model_key not in self.pricing:
+                    # 尝试匹配前缀
+                    for key in self.pricing:
+                        if self.model.startswith(key):
+                            model_key = key
+                            break
+
+                if model_key in self.pricing:
+                    pricing = self.pricing[model_key]
+                    input_cost = usage.prompt_tokens * pricing['input'] / 1000
+                    output_cost = usage.completion_tokens * pricing['output'] / 1000
+                    self.stats['total_cost'] += input_cost + output_cost
+
+                logger.debug(f"LLM调用成功: {usage.prompt_tokens} in + {usage.completion_tokens} out tokens")
 
             return content
 
