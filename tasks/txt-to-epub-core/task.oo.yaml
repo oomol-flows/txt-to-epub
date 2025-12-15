@@ -29,7 +29,7 @@ inputs_def:
     value:
     nullable: true
   - group: Smart TOC Analysis
-    collapsed: false
+    collapsed: true
   - handle: enable_smart_toc
     description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
@@ -82,7 +82,7 @@ inputs_def:
     description: "%enable-checkpoint-resume-for-interrupted-conversions%"
     json_schema:
       type: boolean
-    value: false
+    value: true
     nullable: false
   - handle: llm
     description: "%llm-model-configuration%"
