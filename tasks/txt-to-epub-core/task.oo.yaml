@@ -29,12 +29,12 @@ inputs_def:
     value:
     nullable: true
   - group: Smart TOC Analysis
-    collapsed: true
+    collapsed: false
   - handle: enable_smart_toc
     description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
       type: boolean
-    value: false
+    value: true
     nullable: false
   - handle: llm_confidence_threshold
     description: "%confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often%"
@@ -42,7 +42,7 @@ inputs_def:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.7
+    value: 0.5
     nullable: false
   - handle: llm_toc_detection_threshold
     description: "%llm-confidence-threshold-for-confirming-toc-exists-0-0-1-0%"
@@ -50,7 +50,7 @@ inputs_def:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.7
+    value: 0.5
     nullable: false
   - handle: llm_no_toc_threshold
     description: "%llm-confidence-threshold-for-confirming-no-toc-0-0-1-0%"
@@ -58,7 +58,7 @@ inputs_def:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.8
+    value: 0.6
     nullable: false
   - handle: toc_detection_score_threshold
     description: "%minimum-score-for-toc-detection-0-100-higher-stricter%"
@@ -66,7 +66,7 @@ inputs_def:
       type: number
       minimum: 0
       maximum: 100
-    value: 30
+    value: 20
     nullable: false
   - handle: toc_max_scan_lines
     description: "%maximum-lines-to-scan-for-toc-detection-50-1000%"
@@ -84,9 +84,9 @@ inputs_def:
       ui:widget: llm::model
     value:
       model: oomol-chat
-      temperature: 0
-      top_p: 0.5
-      max_tokens: 128000
+      temperature: 0.3
+      top_p: 0.8
+      max_tokens: 8000
 outputs_def:
   - handle: epub_file
     description: "%generated-epub-file-path%"
