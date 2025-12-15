@@ -49,6 +49,8 @@ nodes:
         value: 30
       - handle: toc_max_scan_lines
         value: 300
+      - handle: enable_resume
+        value: true
     task: self::txt-to-epub-core
   - node_id: txt-first-800-chars#1
     title: "%extract-first-800-characters-1%"
