@@ -252,7 +252,7 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     )
                     print(">>> HybridParser创建成功,开始解析...")
                     # Skip TOC removal since we already did it
-                    volumes = parser.parse(content, skip_toc_removal=True)
+                    volumes = parser.parse(content, skip_toc_removal=True, context=context)
                     print(f">>> 解析完成,生成了 {len(volumes)} 个卷")
 
                     # 输出LLM统计信息

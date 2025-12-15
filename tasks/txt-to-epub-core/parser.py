@@ -833,7 +833,12 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
             if context:
                 # 将章节处理进度映射到 5% - 95% 区间
                 mapped_progress = 5 + int((i + 1) / total_chapters * 90)
+                print(f"DEBUG: 上报进度 - context存在={context is not None}, mapped_progress={mapped_progress}, 当前章节={i+1}/{total_chapters}")
+                logger.info(f"DEBUG: 上报进度 - mapped_progress={mapped_progress}, 当前章节={i+1}/{total_chapters}")
                 context.report_progress(mapped_progress)
+            else:
+                print(f"DEBUG: context为None，无法上报进度！当前章节={i+1}/{total_chapters}")
+                logger.warning(f"DEBUG: context为None，无法上报进度！当前章节={i+1}/{total_chapters}")
 
             # 打印进度
             if llm_assistant:
