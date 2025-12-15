@@ -1,3 +1,14 @@
 title: "%test%"
 nodes:
-  []
+  - node_id: txt-to-epub#2
+    title: "%epub-2%"
+    inputs_from:
+      - handle: txt_file
+      - handle: epub_dir
+      - handle: book_title
+        value: null
+      - handle: author
+        value: null
+      - handle: cover_image
+        value: null
+    subflow: self::txt-to-epub

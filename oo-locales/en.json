@@ -44,5 +44,8 @@
   "array-of-generated-epub-file-paths": "Array of generated EPUB file paths",
   "map-1": "Map #1",
   "filter-files-1": "Filter Files #1",
-  "txt-to-epub-13": "Txt To Epub #1"
+  "txt-to-epub-13": "Txt To Epub #1",
+  "epub-2": "Text document to EPUB #2",
+  "extract-first-800-characters-1": "Extract the first 800 characters #1",
+  "list-files-from-folder-1": "List the files in folder #1."
 }
