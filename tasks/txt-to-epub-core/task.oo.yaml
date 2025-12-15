@@ -76,6 +76,14 @@ inputs_def:
       maximum: 1000
     value: 300
     nullable: false
+  - group: Advanced Options
+    collapsed: true
+  - handle: enable_resume
+    description: "%enable-checkpoint-resume-for-interrupted-conversions%"
+    json_schema:
+      type: boolean
+    value: false
+    nullable: false
   - handle: llm
     description: "%llm-model-configuration%"
     json_schema:

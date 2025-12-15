@@ -1128,13 +1128,14 @@ class HybridParser:
                 model=llm_model or self.config.llm_model
             )
 
-    def parse(self, content: str, skip_toc_removal: bool = False, context=None):
+    def parse(self, content: str, skip_toc_removal: bool = False, context=None, resume_state=None):
         """
         混合解析流程
 
         :param content: 文本内容
         :param skip_toc_removal: If True, skip TOC removal (useful when content already processed)
         :param context: Context object for progress reporting
+        :param resume_state: Resume state for checkpoint resume
         :return: 卷列表
         """
         from parser import detect_language, parse_hierarchical_content
@@ -1148,8 +1149,8 @@ class HybridParser:
         logger.info("阶段1: 规则解析...")
         print(">>> [HybridParser] 阶段1: 规则解析...")
 
-        # 调用规则解析，传递skip_toc_removal参数和context
-        volumes = parse_hierarchical_content(content, self.config, self.llm_assistant, skip_toc_removal=skip_toc_removal, context=context)
+        # 调用规则解析，传递skip_toc_removal参数、context和resume_state
+        volumes = parse_hierarchical_content(content, self.config, self.llm_assistant, skip_toc_removal=skip_toc_removal, context=context, resume_state=resume_state)
 
         # 计算整体置信度
         rule_result = self.rule_parser.parse_with_confidence(content, skip_toc_removal=skip_toc_removal)

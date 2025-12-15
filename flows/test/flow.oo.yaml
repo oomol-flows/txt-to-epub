@@ -77,4 +77,6 @@ nodes:
           temperature: 0
           top_p: 0.5
           max_tokens: 128000
+      - handle: enable_resume
+        value: false
     task: self::txt-to-epub-core

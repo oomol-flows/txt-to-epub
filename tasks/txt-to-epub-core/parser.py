@@ -652,7 +652,7 @@ def remove_table_of_contents(content: str, language: str = None, llm_assistant=N
     return content
 
 
-def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None, skip_toc_removal: bool = False, context=None) -> List[Volume]:
+def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = None, llm_assistant=None, skip_toc_removal: bool = False, context=None, resume_state=None) -> List[Volume]:
     """
     Split text content into three-level hierarchical structure: volumes, chapters, sections.
     Supports both Chinese and English book formats.
@@ -693,7 +693,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
 
     if not volume_matches:
         # No volumes, only chapters
-        chapters = parse_chapters_from_content(content, language, config, llm_assistant, context)
+        chapters = parse_chapters_from_content(content, language, config, llm_assistant, context, resume_state)
         # Validate and merge short chapters if enabled
         if config.enable_length_validation:
             chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
@@ -708,7 +708,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
         first_volume_start = volume_matches[0].start()
         if first_volume_start > 0 and content[:first_volume_start].strip():
             pre_content = content[:first_volume_start]
-            pre_chapters = parse_chapters_from_content(pre_content, language, config, llm_assistant, context)
+            pre_chapters = parse_chapters_from_content(pre_content, language, config, llm_assistant, context, resume_state)
             # Validate and merge short chapters if enabled
             if config.enable_length_validation:
                 pre_chapters = validate_and_merge_chapters(pre_chapters, language, config.min_chapter_length)
@@ -732,7 +732,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
             # Check for duplicate volume titles, skip if duplicate
             if volume_title and volume_title not in seen_volume_titles:
                 seen_volume_titles.add(volume_title)
-                chapters = parse_chapters_from_content(volume_content, language, config, llm_assistant, context)
+                chapters = parse_chapters_from_content(volume_content, language, config, llm_assistant, context, resume_state)
                 # Validate and merge short chapters if enabled
                 if config.enable_length_validation:
                     chapters = validate_and_merge_chapters(chapters, language, config.min_chapter_length)
@@ -752,7 +752,7 @@ def parse_hierarchical_content(content: str, config: Optional[ParserConfig] = No
     return volumes
 
 
-def parse_chapters_from_content(content: str, language: str = 'chinese', config: Optional[ParserConfig] = None, llm_assistant=None, context=None) -> List[Chapter]:
+def parse_chapters_from_content(content: str, language: str = 'chinese', config: Optional[ParserConfig] = None, llm_assistant=None, context=None, resume_state=None) -> List[Chapter]:
     """
     Split chapters and sections from given content.
     Supports both Chinese and English chapter formats.
@@ -762,6 +762,9 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
     :param content: Text content
     :param language: Language type, 'chinese' or 'english'
     :param config: Parser configuration (optional)
+    :param llm_assistant: LLM assistant for title enhancement
+    :param context: Context for progress reporting
+    :param resume_state: Resume state for checkpoint resume
     :return: Chapter list, each chapter contains title, content and section list
     """
     if config is None:
@@ -812,15 +815,27 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
     seen_titles = set()  # Track seen chapter titles
     total_chapters = len(chapter_matches)
 
+    # 设置断点续传的总章节数
+    if resume_state:
+        resume_state.set_total_chapters(total_chapters)
+
     # 记录开始处理章节
     if llm_assistant:
         logger.info(f"开始使用 LLM 生成章节标题，共 {total_chapters} 个章节")
         print(f"\n{'='*60}")
         print(f"开始智能生成章节标题（共 {total_chapters} 章）")
+        if resume_state and resume_state.get_processed_count() > 0:
+            print(f"断点续传：已处理 {resume_state.get_processed_count()} 章，继续处理...")
         print(f"{'='*60}")
 
     for i, match in enumerate(chapter_matches):
         chapter_title = match.group(1).strip()
+
+        # 断点续传：跳过已处理的章节
+        if resume_state and resume_state.is_chapter_processed(chapter_title):
+            if llm_assistant:
+                print(f"[{i+1}/{total_chapters}] 跳过已处理章节: {chapter_title[:20]}...")
+            continue
 
         # Get chapter content (from end of current match to start of next match, or end of text)
         chapter_start = match.end()
@@ -868,6 +883,10 @@ def parse_chapters_from_content(content: str, language: str = 'chinese', config:
                     empty_content = "此章节内容为空。" if language == 'chinese' else "This chapter is empty."
                     chapter_content = empty_content
                 chapter_list.append(Chapter(title=final_title, content=chapter_content, sections=[]))
+
+            # 断点续传：标记章节已处理
+            if resume_state:
+                resume_state.mark_chapter_processed(chapter_title)
 
     # 完成日志
     if llm_assistant:

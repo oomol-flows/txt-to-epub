@@ -138,7 +138,7 @@ def _write_epub_file(epub_file: str, book: epub.EpubBook) -> None:
 def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                 author: str = 'Unknown', cover_image: Optional[str] = None,
                 config: Optional[ParserConfig] = None, show_progress: bool = True,
-                context=None) -> Dict[str, Any]:
+                context=None, enable_resume: bool = False) -> Dict[str, Any]:
     """
     Convert text file to EPUB format e-book, supports Chinese content.
 
@@ -168,6 +168,24 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
         raise ValueError("Output file must be .epub format")
 
     logger.info(f"Starting conversion: {txt_file} -> {epub_file}")
+
+    # 初始化断点续传状态
+    resume_state = None
+    if enable_resume:
+        from .resume_state import ResumeState, get_state_file_path
+        epub_dir = os.path.dirname(epub_file)
+        state_file = get_state_file_path(txt_file, epub_dir)
+        resume_state = ResumeState(state_file)
+
+        # 验证源文件是否改变
+        if resume_state.verify_source_file(txt_file):
+            logger.info(f"断点续传：从上次中断处继续 (已处理 {resume_state.get_processed_count()} 章)")
+            print(f">>> 断点续传已启用：已处理 {resume_state.get_processed_count()} 章")
+        else:
+            logger.info("断点续传：源文件已改变或首次运行，重新开始")
+            print(">>> 断点续传：源文件已改变或首次运行，重新开始")
+            resume_state.reset()
+            resume_state.set_source_hash(txt_file)
 
     # Report initial progress (already at 0% from __init__.py)
     if context:
@@ -252,7 +270,7 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     )
                     print(">>> HybridParser创建成功,开始解析...")
                     # Skip TOC removal since we already did it
-                    volumes = parser.parse(content, skip_toc_removal=True, context=context)
+                    volumes = parser.parse(content, skip_toc_removal=True, context=context, resume_state=resume_state)
                     print(f">>> 解析完成,生成了 {len(volumes)} 个卷")
 
                     # 输出LLM统计信息
@@ -269,7 +287,7 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     logger.warning(f"混合解析器失败，降级到纯规则解析: {e}")
                     # Skip TOC removal since we already did it
                     # 即使降级，也传递 llm_assistant 用于标题生成
-                    volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context)
+                    volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context, resume_state=resume_state)
             else:
                 # 使用传统规则解析
                 print(">>> 进入传统规则解析分支")
@@ -281,7 +299,7 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
                     logger.info("使用传统规则解析")
                 # Skip TOC removal since we already did it
                 # 如果有 llm_assistant，也传递给规则解析器用于标题生成
-                volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context)
+                volumes = parse_hierarchical_content(content, config, llm_assistant, skip_toc_removal=True, context=context, resume_state=resume_state)
 
             # Validate parsing results
             if not volumes:
@@ -445,6 +463,12 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             logger.info("Content integrity verification passed, good conversion quality")
 
         logger.info(f"EPUB conversion completed: {epub_file}")
+
+        # 标记断点续传完成并清理状态文件
+        if resume_state:
+            resume_state.mark_completed()
+            resume_state.cleanup()
+            logger.info("断点续传：转换完成，已清理状态文件")
 
         return {
             "success": True,

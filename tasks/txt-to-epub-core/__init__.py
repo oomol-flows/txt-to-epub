@@ -17,6 +17,7 @@ class Inputs(typing.TypedDict):
     llm_no_toc_threshold: float
     toc_detection_score_threshold: float
     toc_max_scan_lines: int
+    enable_resume: bool
     llm: LLMModelOptions
 class Outputs(typing.TypedDict):
     epub_file: typing.NotRequired[str]
@@ -82,6 +83,7 @@ def main(params: Inputs, context: Context) -> Outputs:
         llm_no_toc_threshold = params.get('llm_no_toc_threshold', 0.8)
         toc_detection_score_threshold = params.get('toc_detection_score_threshold', 30)
         toc_max_scan_lines = params.get('toc_max_scan_lines', 300)
+        enable_resume = params.get('enable_resume', False)
         llm_config = params.get('llm', {})
 
         # Debug logging
@@ -132,7 +134,8 @@ def main(params: Inputs, context: Context) -> Outputs:
             author=author,
             cover_image=cover_image,
             config=config,
-            context=context  # 传递 context 用于进度上报
+            context=context,  # 传递 context 用于进度上报
+            enable_resume=enable_resume  # 传递断点续传配置
         )
         context.preview({
             "type": "markdown",
