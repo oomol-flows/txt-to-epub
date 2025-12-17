@@ -4,6 +4,12 @@ inputs_def:
     json_schema:
       type: string
       ui:widget: file
+      ui:options:
+        excludeAll: true
+        filters:
+          - name: TXT
+            extensions:
+              - txt
   - group: Book Metadata
     collapsed: true
   - handle: epub_file

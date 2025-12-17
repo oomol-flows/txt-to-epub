@@ -21,5 +21,9 @@
   "get-book-info-1": "获取图书信息 #1",
   "list-files-from-folder-1": "列出文件夹 #1 中的文件",
   "filter-files-1": "筛选文件 #1",
-  "txt-to-epub-13": "Txt 转 Epub #1"
+  "txt-to-epub-13": "Txt 转 Epub #1",
+  "txt-epub-1": "Txt 转 Epub #1",
+  "output-epub-file-path-optional-defaults-to-session-directory": "输出 EPUB 文件路径（可选，默认为会话目录）",
+  "enable-checkpoint-resume-for-interrupted-conversions": "为中断的转换启用检查点恢复",
+  "llm-model-configuration": "LLM 模型配置"
 }

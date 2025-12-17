@@ -1,7 +1,7 @@
 title: "%test%"
 nodes:
   - node_id: txt-to-epub#1
-    title: "Txt 转 Epub #1"
+    title: "%txt-epub-1%"
     inputs_from:
       - handle: txt_file
         value: /oomol-driver/oomol-storage/txt/《明朝那些事儿》.txt
