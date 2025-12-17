@@ -1,6 +1,7 @@
 {
   "txt-to-epub": "Txt To Epub",
   "a-tool-for-converting-txt-format-text-files-to-epub-ebooks-with": "一款功能强大且优雅的工具，用于将文本文件转换为格式精美的 EPUB 电子书。非常适合出版商、作家和读者将纯文本文档转换为专业品质的数字图书。",
+  "transform-plain-text-files-into-beautiful-professional-digital-books-with-smart-chapter-detection": "将纯文本文件转换为精美的专业数字图书，具备智能章节检测功能",
   "test": "测试",
   "txt-to-epub-core": "Txt 转 Epub",
   "converts-txt-book-files-to-epub-format-with-smart-toc-detection": "将 TXT 书籍文件转换为 EPUB 格式，具备智能目录检测和可选的 LLM 驱动分析功能",

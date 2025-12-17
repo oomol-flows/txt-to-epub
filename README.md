@@ -1,149 +1,110 @@
 # TXT to EPUB Converter
 
-A powerful and elegant tool for converting text files to beautifully formatted EPUB eBooks. Perfect for publishers, writers, and readers who want to transform plain text documents into professional-quality digital books.
+Transform your plain text files into beautiful, professional digital books that you can read on any device. Whether you're a writer, publisher, or book lover, this tool makes it easy to create stunning eBooks from simple text files.
 
 ## 📚 What This Tool Does
 
-This project provides an easy-to-use system for converting text files (.txt) into EPUB format eBooks with professional typography and styling. Whether you have a single book or a collection of texts, this tool can help you create elegant digital books that look great on any eReader.
+This tool helps you turn ordinary text files (.txt) into professionally formatted EPUB eBooks. Think of it as giving your text files a complete makeover - adding beautiful fonts, proper chapter organization, and a polished reading experience that looks great on phones, tablets, and eReaders.
 
 ## ✨ Key Features
 
-### 🎨 Professional Typography
-- **Beautiful Chinese fonts**: Carefully selected font families including Song, Hei, Kai, and XiaoBiaoSong
-- **Elegant styling**: Professional color schemes and typography inspired by leading eReader platforms
-- **Multi-level formatting**: Automatic detection and styling of volumes, chapters, and sections
-- **Responsive design**: Optimized for different screen sizes and devices
+### 🎨 Beautiful Reading Experience
+- **Elegant fonts and typography**: Your books will look as good as professionally published eBooks, with carefully chosen fonts and spacing that make reading a pleasure
+- **Smart chapter organization**: The tool automatically figures out your book's structure - finding chapters, sections, and volumes without you having to do anything
+- **Professional styling**: Every element from chapter titles to page margins is designed to match what you'd expect from a quality digital book
+- **Works on any device**: Your eBooks will look great whether someone reads them on their phone, tablet, Kindle, or computer
 
-### 🤖 Smart Text Processing
-- **Intelligent structure detection**: Automatically identifies book hierarchy (Volume → Chapter → Section)
-- **Flexible title formats**: Supports both numeric (Chapter 1) and Chinese numerals (第一章)
-- **Multiple encoding support**: Handles GB18030, GBK, UTF-8, and other Chinese text encodings
-- **Error-free processing**: Robust handling of various text formats and edge cases
+### 🤖 Intelligent Analysis
+- **Automatic structure detection**: Just provide your text file - the tool will identify chapters, sections, and the overall book structure on its own
+- **Flexible formatting**: Works with different chapter numbering styles (Chapter 1, 第一章, etc.) and various text organizations
+- **Smart table of contents**: Automatically creates a navigation menu so readers can easily jump to any chapter
+- **AI-powered accuracy**: Optional advanced analysis ensures even tricky chapter formats are detected correctly
 
-### 📖 Easy to Use
-- **Single file conversion**: Convert one text file to EPUB
-- **Batch processing**: Convert entire folders of text files at once
-- **Optional customization**: Add book titles, author names, and cover images
-- **Drag-and-drop interface**: Simple visual workflow for non-technical users
-
-## 🛠️ Available Tools (Blocks)
-
-### 1. TXT to EPUB Converter
-**Purpose**: Convert a single text file to EPUB format
-
-**What you need to provide**:
-- Text file (.txt) - your book content
-- Output folder - where to save the EPUB file
-- Book title (optional) - will be extracted from content if not provided
-- Author name (optional) - for book metadata
-- Cover image (optional) - for book cover
-
-**What you get**:
-- Professional EPUB file ready for any eReader
-
-### 2. Batch TXT to EPUB Converter
-**Purpose**: Convert multiple text files from a folder to EPUB format
-
-**What you need to provide**:
-- Input folder - containing your .txt files
-- Output folder - where to save all EPUB files
-- Book title template (optional) - for consistent naming
-- Author name (optional) - applied to all books
-- Cover image (optional) - used for all books
-
-**What you get**:
-- Multiple EPUB files, one for each text file in your folder
+### 📖 Simple to Use
+- **One-click conversion**: Select your text file, choose where to save it, and you're done
+- **Customize your book**: Optionally add a title, author name, and cover image to personalize your eBook
+- **Resume interrupted work**: If something goes wrong mid-conversion, the tool can pick up where it left off
+- **Real-time progress**: Watch as your book is being created with clear progress updates
 
 ## 🎯 Perfect For
 
-- **Publishers**: Converting manuscript collections to digital format
-- **Writers**: Self-publishing novels, stories, or non-fiction works
-- **Librarians**: Digitizing text archives and historical documents
-- **Educators**: Creating course materials and reading collections
-- **Book lovers**: Converting personal text collections to eBook format
-- **Translators**: Publishing translated works in professional format
+- **Writers and authors**: Turn your manuscripts into professional eBooks ready for publishing or sharing
+- **Book enthusiasts**: Convert your favorite text files or online stories into eBooks you can read anywhere
+- **Publishers**: Quickly convert multiple manuscripts or documents into digital format
+- **Students and educators**: Transform study materials, notes, or course content into portable eBooks
+- **Librarians and archivists**: Digitize text collections into a modern, accessible format
+- **Translators**: Create professional eBook versions of your translated works
 
-## 🌟 Why Choose This Tool
+## 🌟 What Makes This Tool Special
 
-### Professional Quality Results
-Unlike simple converters, this tool creates EPUBs with:
-- Publisher-grade typography and styling
-- Proper book structure and navigation
-- Optimized reading experience across devices
-- Standards-compliant EPUB 3.0 format
+### Professional Quality Without the Complexity
+You don't need to know anything about eBook formats, typography, or digital publishing. The tool handles all the technical details automatically, giving you results that look like they came from a professional publishing house.
 
-### User-Friendly Design
-- No technical knowledge required
-- Visual workflow interface
-- Batch processing capabilities
-- Comprehensive error handling
+### Smart Enough to Handle Real Books
+Unlike basic converters, this tool understands how books are structured. It can detect when a new chapter starts, organize sections properly, and create navigation that makes sense - even with complex or unusual chapter formats.
 
-### Flexible and Customizable
-- Works with various text encodings
-- Supports different title formats
-- Optional metadata customization
-- Scalable from single files to large collections
-
-## 📈 Latest Improvements (v2.0.0)
-
-### Performance & Accuracy Enhancements
-
-- ⚡ **30-50% faster parsing** for large files (100MB+)
-- 🎯 **97% accuracy** (up from 82%) in chapter detection
-- ✅ **Intelligent validation** - filters false positives from inline references
-- 📏 **Chapter length validation** - merges short misidentified chapters
-- 📊 **Real-time progress bars** - see conversion status
-- ⚙️ **YAML configuration** - customize parser behavior
-- 🧪 **Comprehensive testing** - 20+ unit tests ensure quality
-
-### LLM-Powered Intelligence (New! 🎉)
-
-**OpenAI SDK 实现已完成!** 使用 GPT-3.5/GPT-4 提升准确率到 96%+
-
-- ✅ **已实现**: 基于 OpenAI SDK 的完整集成 ([OPENAI_IMPLEMENTATION.md](OPENAI_IMPLEMENTATION.md))
-- 💰 **超低成本**: GPT-3.5 仅 $0.005/本 (比 Claude 便宜 10 倍)
-- 🎯 **高准确率**: 特殊格式识别从 40% 提升到 84%
-- 🚀 **即刻可用**: 安装 `openai` 包即可开始使用
-
-**快速开始**:
-```bash
-pip install openai
-export OPENAI_API_KEY="your-key"
-python tests/test_llm_parser.py
-```
-
-**完整文档**:
-- 📖 [使用指南](LLM_USAGE_GUIDE.md) - 详细教程和示例
-- 🏗️ [设计文档](LLM_INTEGRATION_DESIGN.md) - 架构和原理
-- ✅ [实现报告](OPENAI_IMPLEMENTATION.md) - OpenAI 版本详情
-
-更多优化细节请查看 [OPTIMIZATION_README.md](OPTIMIZATION_README.md)
+### Flexible and Forgiving
+Works with text files saved in different formats, handles various chapter numbering styles, and adapts to different book structures. If your text file can be read, this tool can convert it.
 
 ## 🚀 Getting Started
 
-1. **Prepare your text files**: Ensure your .txt files have clear chapter/section structure
-2. **Choose your conversion type**: Single file or batch processing
-3. **Set your preferences**: Add titles, authors, and cover images as desired
-4. **Run the conversion**: Watch as professional EPUBs are created
-5. **Enjoy your eBooks**: Transfer to any eReader or reading app
+### Basic Conversion (3 Simple Steps)
 
-## 📱 Output Compatibility
+1. **Select your text file**: Choose the .txt file you want to convert
+2. **Choose save location**: Pick where you'd like your new EPUB file to go
+3. **Start conversion**: Click to begin, and watch as your professional eBook is created
 
-Generated EPUB files work perfectly with:
-- Kindle (after conversion)
-- Apple Books
-- Google Play Books
-- Adobe Digital Editions
-- Calibre
-- Most mobile reading apps
+### Optional Enhancements
 
-## 🎨 Style Examples
+Want to make your eBook even better? You can also:
+- **Add a book title**: Give your eBook a proper name (or let the tool detect it from your text)
+- **Include author information**: Add the author's name to the book's details
+- **Upload a cover image**: Make your eBook stand out with a custom cover
+- **Enable smart analysis**: Turn on AI-powered chapter detection for even better accuracy
 
-The tool creates books with elegant formatting including:
-- **Volume titles**: Large, centered with decorative elements
-- **Chapter headers**: Professional styling with borders and symbols
-- **Section breaks**: Clear visual separation with colored accents
-- **Body text**: Optimized line spacing and justified alignment
-- **Responsive layout**: Adapts to different screen sizes
+### Advanced Options
 
-Transform your plain text files into beautiful, professional eBooks that readers will love!
+For power users who want more control:
+- **Table of contents settings**: Adjust how aggressively the tool looks for chapters
+- **Resume capability**: Enable the ability to restart interrupted conversions
+- **Model selection**: Choose which AI model to use for analysis
+
+## 📱 Where You Can Read Your Books
+
+The EPUB files this tool creates work perfectly with:
+- **Apple Books** (iPhone, iPad, Mac)
+- **Google Play Books** (Android, Web)
+- **Kindle** (after a simple format conversion)
+- **Adobe Digital Editions** (Windows, Mac)
+- **Moon+ Reader, FBReader, and other popular reading apps**
+- **Calibre** and other eBook management software
+
+Basically, if it can read an EPUB file, your book will work there!
+
+## 💡 Tips for Best Results
+
+### Preparing Your Text File
+- Make sure chapters are clearly marked (like "Chapter 1" or "第一章")
+- Use consistent formatting throughout your text
+- If your book has parts or volumes, label them clearly
+
+### Getting the Most from Smart Detection
+- The tool works great with standard chapter formats
+- For unusual formats, consider enabling the advanced AI analysis
+- If chapters aren't detected perfectly, you can adjust the detection settings
+
+### Creating Great-Looking Books
+- Add a cover image for a professional touch
+- Include the book title and author for proper organization
+- Make sure your text file is complete before converting
+
+## 🎨 What Your Books Will Look Like
+
+Your converted eBooks will feature:
+- **Clean, readable text** with optimized spacing and alignment
+- **Elegant chapter headers** with decorative elements and professional styling
+- **Clear visual hierarchy** that helps readers navigate your content
+- **Responsive layout** that automatically adjusts to any screen size
+- **Professional typography** that makes long reading sessions comfortable
+
+Transform your text files into eBooks that readers will love - no technical knowledge required!
