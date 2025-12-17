@@ -4,11 +4,21 @@ inputs_def:
     json_schema:
       type: string
       ui:widget: file
-  - handle: epub_dir
-    description: "%directory-where-the-epub-file-will-be-saved%"
+  - group: Book Metadata
+    collapsed: true
+  - handle: epub_file
+    description: "%output-epub-file-path-optional-defaults-to-session-directory%"
     json_schema:
       type: string
-      ui:widget: dir
+      ui:widget: save
+      ui:options:
+        filters:
+          - name: EPUB
+            extensions:
+              - epub
+        excludeAll: true
+    value:
+    nullable: true
   - handle: book_title
     description: "%book-title-optional-auto-detected-if-not-provided%"
     json_schema:
@@ -34,56 +44,56 @@ inputs_def:
     description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
       type: boolean
-    value: true
-    nullable: false
+    value:
+    nullable: true
   - handle: llm_confidence_threshold
     description: "%confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often%"
     json_schema:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.5
-    nullable: false
+    value:
+    nullable: true
   - handle: llm_toc_detection_threshold
     description: "%llm-confidence-threshold-for-confirming-toc-exists-0-0-1-0%"
     json_schema:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.5
-    nullable: false
+    value:
+    nullable: true
   - handle: llm_no_toc_threshold
     description: "%llm-confidence-threshold-for-confirming-no-toc-0-0-1-0%"
     json_schema:
       type: number
       minimum: 0
       maximum: 1
-    value: 0.6
-    nullable: false
+    value:
+    nullable: true
   - handle: toc_detection_score_threshold
     description: "%minimum-score-for-toc-detection-0-100-higher-stricter%"
     json_schema:
       type: number
       minimum: 0
       maximum: 100
-    value: 20
-    nullable: false
+    value:
+    nullable: true
   - handle: toc_max_scan_lines
     description: "%maximum-lines-to-scan-for-toc-detection-50-1000%"
     json_schema:
       type: integer
       minimum: 50
       maximum: 1000
-    value: 300
-    nullable: false
+    value:
+    nullable: true
   - group: Advanced Options
     collapsed: true
   - handle: enable_resume
     description: "%enable-checkpoint-resume-for-interrupted-conversions%"
     json_schema:
       type: boolean
-    value: true
-    nullable: false
+    value:
+    nullable: true
   - handle: llm
     description: "%llm-model-configuration%"
     json_schema:
@@ -91,10 +101,7 @@ inputs_def:
         title: Model
       ui:widget: llm::model
     value:
-      model: oomol-chat
-      temperature: 0.3
-      top_p: 0.8
-      max_tokens: 8000
+    nullable: true
 outputs_def:
   - handle: epub_file
     description: "%generated-epub-file-path%"
@@ -112,4 +119,4 @@ title: "%txt-to-epub-core%"
 icon: ":twemoji:blue-book:"
 applet: true
 description: "%converts-txt-book-files-to-epub-format-with-smart-toc-detection%"
-private: true
+private: false

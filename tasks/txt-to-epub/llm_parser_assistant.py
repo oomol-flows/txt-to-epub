@@ -1003,12 +1003,13 @@ class RuleBasedParserWithConfidence:
         from parser_config import ParserConfig, DEFAULT_CONFIG
         self.config = config or DEFAULT_CONFIG
 
-    def parse_with_confidence(self, content: str, skip_toc_removal: bool = False) -> Dict:
+    def parse_with_confidence(self, content: str, skip_toc_removal: bool = False, context=None) -> Dict:
         """
         解析内容并返回置信度
 
         :param content: 文本内容
         :param skip_toc_removal: If True, skip TOC removal (useful when content already processed)
+        :param context: Context for progress reporting
         :return: {
             'volumes': [...],
             'chapters': [...],
@@ -1019,7 +1020,7 @@ class RuleBasedParserWithConfidence:
         from parser import parse_hierarchical_content, detect_language
 
         # 使用现有解析器
-        volumes = parse_hierarchical_content(content, skip_toc_removal=skip_toc_removal)
+        volumes = parse_hierarchical_content(content, skip_toc_removal=skip_toc_removal, context=context)
 
         # 检测语言
         language = detect_language(content)
@@ -1153,7 +1154,7 @@ class HybridParser:
         volumes = parse_hierarchical_content(content, self.config, self.llm_assistant, skip_toc_removal=skip_toc_removal, context=context, resume_state=resume_state)
 
         # 计算整体置信度
-        rule_result = self.rule_parser.parse_with_confidence(content, skip_toc_removal=skip_toc_removal)
+        rule_result = self.rule_parser.parse_with_confidence(content, skip_toc_removal=skip_toc_removal, context=context)
         confidence = rule_result['overall_confidence']
         threshold = self.config.llm_confidence_threshold
         print(f">>> [HybridParser] 规则解析置信度: {confidence:.2f}, 阈值: {threshold:.2f}")

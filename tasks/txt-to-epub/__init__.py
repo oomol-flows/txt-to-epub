@@ -7,17 +7,17 @@ import typing
 from oocana import LLMModelOptions
 class Inputs(typing.TypedDict):
     txt_file: str
-    epub_dir: str
+    epub_file: str | None
     book_title: str | None
     author: str | None
     cover_image: str | None
-    enable_smart_toc: bool
-    llm_confidence_threshold: float
-    llm_toc_detection_threshold: float
-    llm_no_toc_threshold: float
-    toc_detection_score_threshold: float
-    toc_max_scan_lines: int
-    enable_resume: bool
+    enable_smart_toc: bool | None
+    llm_confidence_threshold: float | None
+    llm_toc_detection_threshold: float | None
+    llm_no_toc_threshold: float | None
+    toc_detection_score_threshold: float | None
+    toc_max_scan_lines: int | None
+    enable_resume: bool | None
     llm: LLMModelOptions
 class Outputs(typing.TypedDict):
     epub_file: typing.NotRequired[str]
@@ -38,7 +38,7 @@ def main(params: Inputs, context: Context) -> Outputs:
     This is a simplified version focusing on core functionality with reduced complex API exposure.
 
     Args:
-        params: Input parameter dictionary, required parameters: txt_file, epub_dir
+        params: Input parameter dictionary, required parameter: txt_file
         context: Context object
 
     Returns:
@@ -54,37 +54,68 @@ def main(params: Inputs, context: Context) -> Outputs:
 
     # Validate required parameters
     txt_file = params.get('txt_file')
-    epub_dir = params.get('epub_dir')
 
-    print(f"DEBUG: txt_file={txt_file}, epub_dir={epub_dir}")  # 调试输出
-    
-    if not txt_file or not epub_dir:
-        logger.error("Missing required parameters: both txt_file and epub_dir cannot be empty")
-        raise ValueError("Conversion failed: both txt_file and epub_dir cannot be empty")
-    
+    if not txt_file:
+        logger.error("Missing required parameter: txt_file cannot be empty")
+        raise ValueError("Conversion failed: txt_file cannot be empty")
+
     try:
         # Generate book title (use filename if not provided)
         book_title = params.get('book_title')
         if not book_title:
             txt_filename = os.path.basename(txt_file)
             book_title = os.path.splitext(txt_filename)[0]
-        
+
         # Set default values for other parameters
         author = params.get('author') or 'Unknown Author'
         cover_image = params.get('cover_image')  # Can be None
-        
-        # Generate output file path
-        epub_file = os.path.join(epub_dir, f"{book_title}.epub")
 
-        # Get smart TOC setting
-        enable_smart_toc = params.get('enable_smart_toc', False)
-        llm_confidence_threshold = params.get('llm_confidence_threshold', 0.7)
-        llm_toc_detection_threshold = params.get('llm_toc_detection_threshold', 0.7)
-        llm_no_toc_threshold = params.get('llm_no_toc_threshold', 0.8)
-        toc_detection_score_threshold = params.get('toc_detection_score_threshold', 30)
-        toc_max_scan_lines = params.get('toc_max_scan_lines', 300)
-        enable_resume = params.get('enable_resume', False)
-        llm_config = params.get('llm', {})
+        # Generate output file path
+        epub_file_param = params.get('epub_file')
+        if epub_file_param:
+            epub_file = epub_file_param
+        else:
+            # Default to session directory with book title as filename
+            epub_file = os.path.join(context.session_dir, f"{book_title}.epub")
+
+        # Get smart TOC setting with recommended defaults
+        enable_smart_toc = params.get('enable_smart_toc')
+        if enable_smart_toc is None:
+            enable_smart_toc = True  # Recommended default: enable smart TOC
+
+        # Get LLM thresholds with recommended defaults
+        llm_confidence_threshold = params.get('llm_confidence_threshold')
+        if llm_confidence_threshold is None:
+            llm_confidence_threshold = 0.5  # Recommended default
+
+        llm_toc_detection_threshold = params.get('llm_toc_detection_threshold')
+        if llm_toc_detection_threshold is None:
+            llm_toc_detection_threshold = 0.5  # Recommended default
+
+        llm_no_toc_threshold = params.get('llm_no_toc_threshold')
+        if llm_no_toc_threshold is None:
+            llm_no_toc_threshold = 0.6  # Recommended default
+
+        toc_detection_score_threshold = params.get('toc_detection_score_threshold')
+        if toc_detection_score_threshold is None:
+            toc_detection_score_threshold = 20  # Recommended default
+
+        toc_max_scan_lines = params.get('toc_max_scan_lines')
+        if toc_max_scan_lines is None:
+            toc_max_scan_lines = 300  # Recommended default
+
+        enable_resume = params.get('enable_resume')
+        if enable_resume is None:
+            enable_resume = True  # Recommended default: enable resume
+
+        llm_config = params.get('llm')
+        if llm_config is None:
+            llm_config = {
+                'model': 'oomol-chat',
+                'temperature': 0.5,
+                'top_p': 1,
+                'max_tokens': 128000
+            }  # Recommended defaults
 
         # Debug logging
         print(f"=== 配置调试信息 (print) ===")

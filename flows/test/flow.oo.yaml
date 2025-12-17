@@ -1,14 +1,36 @@
 title: "%test%"
 nodes:
-  - node_id: txt-to-epub#2
-    title: "%epub-2%"
+  - node_id: txt-to-epub#1
+    title: "Txt 转 Epub #1"
     inputs_from:
       - handle: txt_file
-      - handle: epub_dir
+        value: /oomol-driver/oomol-storage/txt/《明朝那些事儿》.txt
+      - handle: epub_file
+        value: null
       - handle: book_title
         value: null
       - handle: author
         value: null
       - handle: cover_image
         value: null
-    subflow: self::txt-to-epub
+      - handle: enable_smart_toc
+        value: null
+      - handle: llm_confidence_threshold
+        value: null
+      - handle: llm_toc_detection_threshold
+        value: null
+      - handle: llm_no_toc_threshold
+        value: null
+      - handle: toc_detection_score_threshold
+        value: null
+      - handle: toc_max_scan_lines
+        value: null
+      - handle: enable_resume
+        value: null
+      - handle: llm
+        value:
+          model: oomol-chat
+          temperature: 0.5
+          top_p: 1
+          max_tokens: 128000
+    task: self::txt-to-epub
