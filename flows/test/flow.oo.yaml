@@ -4,9 +4,9 @@ nodes:
     title: "%txt-epub-1%"
     inputs_from:
       - handle: txt_file
-        value: /oomol-driver/oomol-storage/txt/《明朝那些事儿》.txt
+        value: /oomol-driver/oomol-storage/txt/诡秘之主(1-500章).txt
       - handle: epub_file
-        value: null
+        value: /oomol-driver/oomol-storage/epub/明朝那些事儿.epub
       - handle: book_title
         value: null
       - handle: author
