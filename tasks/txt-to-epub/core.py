@@ -442,7 +442,9 @@ def txt_to_epub(txt_file: str, epub_file: str, title: str = 'My Book',
             book.spine = ['nav'] + chapter_items
 
             # Ensure output directory exists and write file
-            os.makedirs(os.path.dirname(epub_file), exist_ok=True)
+            epub_dir = os.path.dirname(epub_file)
+            if epub_dir:  # Only create directory if path has a directory component
+                os.makedirs(epub_dir, exist_ok=True)
             _write_epub_file(epub_file, book)
             pbar.update(1)
 

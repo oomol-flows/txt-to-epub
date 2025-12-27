@@ -11,8 +11,6 @@
       "sections": {
         "inputs": {
           "groupCollapsed": {
-            "Book Metadata": true,
-            "Smart TOC Analysis": true,
             "Advanced Options": true
           }
         }

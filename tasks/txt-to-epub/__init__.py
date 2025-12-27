@@ -72,7 +72,7 @@ def main(params: Inputs, context: Context) -> Outputs:
 
         # Generate output file path
         epub_file_param = params.get('epub_file')
-        if epub_file_param:
+        if epub_file_param and epub_file_param.strip():
             epub_file = epub_file_param
         else:
             # Default to session directory with book title as filename
