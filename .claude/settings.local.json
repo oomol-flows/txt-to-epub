@@ -10,7 +10,11 @@
       "mcp__oomol__listBlocks",
       "mcp__oomol__listBlockHandles",
       "mcp__oomol__searchPackages",
-      "mcp__oomol__usePackage"
+      "mcp__oomol__usePackage",
+      "Bash(poetry install:*)",
+      "Bash(poetry lock:*)",
+      "Bash(python:*)",
+      "Bash(pip index:*)"
     ],
     "deny": [],
     "ask": []
