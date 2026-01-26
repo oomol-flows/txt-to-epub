@@ -14,7 +14,12 @@
       "Bash(poetry install:*)",
       "Bash(poetry lock:*)",
       "Bash(python:*)",
-      "Bash(pip index:*)"
+      "Bash(pip index:*)",
+      "Bash",
+      "Read",
+      "Write",
+      "WebFetch",
+      "mcp__oomol"
     ],
     "deny": [],
     "ask": []

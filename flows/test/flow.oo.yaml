@@ -30,7 +30,7 @@ nodes:
       - handle: llm
         value:
           model: oomol-chat
-          temperature: 0.5
-          top_p: 1
-          max_tokens: 128000
+          temperature: 0.6
+          top_p: 0.8
+          max_tokens: 8100
     task: self::txt-to-epub
