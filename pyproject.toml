@@ -6,7 +6,7 @@ authors = []
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "txt-to-epub-converter[ai] (>=0.1.0,<0.2.0)",
+    "txt-to-epub-converter (>=0.1.2,<0.2.0)",
 ]
 
 [tool.poetry]
