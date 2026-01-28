@@ -10,6 +10,7 @@ inputs_def:
           - name: TXT
             extensions:
               - txt
+    nullable: false
   - group: Book Metadata
     collapsed: true
   - handle: epub_file

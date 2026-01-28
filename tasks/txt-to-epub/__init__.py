@@ -18,9 +18,9 @@ class Inputs(typing.TypedDict):
     toc_detection_score_threshold: float | None
     toc_max_scan_lines: int | None
     enable_resume: bool | None
-    llm: LLMModelOptions
+    llm: LLMModelOptions | None
 class Outputs(typing.TypedDict):
-    epub_file: typing.NotRequired[str]
+    epub_file: str
 #endregion
 
 # Import library functions
@@ -63,9 +63,9 @@ def main(params: Inputs, context: Context) -> Outputs:
             txt_filename = os.path.basename(txt_file)
             book_title = os.path.splitext(txt_filename)[0]
 
-        # Set default values for other parameters
+        # Set default values for optional parameters
         author = params.get('author') or 'Unknown Author'
-        cover_image = params.get('cover_image')
+        cover_image = params.get('cover_image')  # None if not provided
 
         # Generate output file path
         epub_file_param = params.get('epub_file')
@@ -74,21 +74,12 @@ def main(params: Inputs, context: Context) -> Outputs:
         else:
             epub_file = os.path.join(context.session_dir, f"{book_title}.epub")
 
-        # Get smart TOC setting with defaults
+        # Smart TOC settings with defaults
         enable_smart_toc = params.get('enable_smart_toc')
         if enable_smart_toc is None:
             enable_smart_toc = True
 
-        # Get LLM thresholds with defaults
-        llm_confidence_threshold = params.get('llm_confidence_threshold') or 0.5
-        llm_toc_detection_threshold = params.get('llm_toc_detection_threshold') or 0.5
-        llm_no_toc_threshold = params.get('llm_no_toc_threshold') or 0.6
-        toc_detection_score_threshold = params.get('toc_detection_score_threshold') or 20
-        toc_max_scan_lines = params.get('toc_max_scan_lines') or 300
-        enable_resume = params.get('enable_resume')
-        if enable_resume is None:
-            enable_resume = True
-
+        # LLM configuration with defaults
         llm_config = params.get('llm') or {
             'model': 'oomol-chat',
             'temperature': 0.5,
@@ -96,10 +87,39 @@ def main(params: Inputs, context: Context) -> Outputs:
             'max_tokens': 128000
         }
 
+        # Threshold parameters with defaults
+        llm_confidence_threshold = params.get('llm_confidence_threshold')
+        if llm_confidence_threshold is None:
+            llm_confidence_threshold = 0.5
+
+        llm_toc_detection_threshold = params.get('llm_toc_detection_threshold')
+        if llm_toc_detection_threshold is None:
+            llm_toc_detection_threshold = 0.5
+
+        llm_no_toc_threshold = params.get('llm_no_toc_threshold')
+        if llm_no_toc_threshold is None:
+            llm_no_toc_threshold = 0.6
+
+        toc_detection_score_threshold = params.get('toc_detection_score_threshold')
+        if toc_detection_score_threshold is None:
+            toc_detection_score_threshold = 20
+
+        toc_max_scan_lines = params.get('toc_max_scan_lines')
+        if toc_max_scan_lines is None:
+            toc_max_scan_lines = 300
+
+        enable_resume = params.get('enable_resume')
+        if enable_resume is None:
+            enable_resume = True
+
         # Log configuration
+        logger.info(f"Book Title: {book_title}")
+        logger.info(f"Author: {author}")
+        logger.info(f"Cover Image: {cover_image or 'None'}")
         logger.info(f"Smart TOC: {enable_smart_toc}")
         logger.info(f"LLM Model: {llm_config.get('model', 'oomol-chat')}")
         logger.info(f"Confidence Threshold: {llm_confidence_threshold}")
+        logger.info(f"Resume Enabled: {enable_resume}")
 
         # Configure parser using library's ParserConfig
         config = ParserConfig(
