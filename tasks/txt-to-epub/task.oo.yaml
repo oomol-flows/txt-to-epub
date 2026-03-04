@@ -49,13 +49,30 @@ inputs_def:
     description: "%enable-ai-generated-cover%"
     json_schema:
       type: boolean
-    value: true
+    value:
     nullable: true
   - handle: enable_ai_illustrations
     description: "%enable-ai-generated-illustrations%"
     json_schema:
       type: boolean
-    value: false
+    value:
+    nullable: true
+  - handle: illustration_density
+    description: "%illustration-density-low-medium-high-ultra%"
+    json_schema:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - ultra
+      ui:options:
+        labels:
+          - Low (fewer illustrations)
+          - Medium (balanced)
+          - High (more illustrations)
+          - Ultra (maximum illustrations)
+    value:
     nullable: true
   - group: Smart TOC Analysis
     collapsed: true

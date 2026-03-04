@@ -13,6 +13,7 @@ class Inputs(typing.TypedDict):
     cover_image: str | None
     enable_ai_cover: bool | None
     enable_ai_illustrations: bool | None
+    illustration_density: typing.Literal["low", "medium", "high", "ultra"] | None
     enable_smart_toc: bool | None
     llm_confidence_threshold: float | None
     llm_toc_detection_threshold: float | None

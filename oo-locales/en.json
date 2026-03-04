@@ -13,6 +13,7 @@
   "cover-image-file-path-optional": "Cover image file path (optional)",
   "enable-ai-generated-cover": "Enable AI-generated cover",
   "enable-ai-generated-illustrations": "Enable AI-generated illustrations",
+  "illustration-density-low-medium-high-ultra": "Illustration density (low/medium/high/ultra)",
   "enable-llm-powered-smart-toc-analysis": "Enable LLM-powered smart TOC analysis",
   "confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often": "Confidence threshold for LLM trigger (0.0-1.0, lower = more often)",
   "llm-confidence-threshold-for-confirming-toc-exists-0-0-1-0": "LLM confidence threshold for confirming TOC exists (0.0-1.0)",
