@@ -11,10 +11,8 @@ class Inputs(typing.TypedDict):
     book_title: str | None
     author: str | None
     cover_image: str | None
-    enable_ai_metadata: bool | None
     enable_ai_cover: bool | None
     enable_ai_illustrations: bool | None
-    illustration_density: typing.Literal["low", "medium", "high", "ultra"] | None
     enable_smart_toc: bool | None
     llm_confidence_threshold: float | None
     llm_toc_detection_threshold: float | None
@@ -187,11 +185,92 @@ def main(params: Inputs, context: Context) -> Outputs:
             "type": "markdown",
             "data": result["validation_report"]
         })
+
+        # Extract AI processing results
+        ai_result = result.get("ai")
+        chapter_results = None
+        ai_usage = None
+        ai_warnings = None
+
+        if ai_result:
+            # Extract chapter illustration results
+            illustration_info = ai_result.get("illustration", {})
+            chapter_results = illustration_info.get("chapter_results")
+
+            # Extract AI usage statistics
+            ai_usage = ai_result.get("usage")
+
+            # Extract AI warnings
+            ai_warnings = ai_result.get("warnings")
+
+            # Preview AI processing summary if any AI features were enabled
+            if enable_ai_metadata or enable_ai_cover or enable_ai_illustrations:
+                ai_summary_lines = ["## AI Processing Summary\n"]
+
+                # Metadata section
+                metadata_info = ai_result.get("metadata", {})
+                if metadata_info.get("generated"):
+                    ai_summary_lines.append("✅ **Metadata**: AI-generated title/author detected")
+
+                # Cover section
+                cover_info = ai_result.get("cover", {})
+                if cover_info.get("generated"):
+                    ai_summary_lines.append("✅ **Cover**: AI-generated cover image created")
+
+                # Illustration section
+                if illustration_info:
+                    generated_count = illustration_info.get("generated_count", 0)
+                    attempted_count = illustration_info.get("attempted_count", 0)
+                    skipped_count = illustration_info.get("skipped_count", 0)
+                    failed_count = illustration_info.get("failed_count", 0)
+
+                    ai_summary_lines.append(f"\n### Illustrations\n")
+                    ai_summary_lines.append(f"- **Density**: {illustration_info.get('density', 'N/A')}")
+                    ai_summary_lines.append(f"- **Policy**: {illustration_info.get('policy', 'N/A')}")
+                    ai_summary_lines.append(f"- **Generated**: {generated_count}/{attempted_count}")
+                    if skipped_count > 0:
+                        ai_summary_lines.append(f"- **Skipped**: {skipped_count}")
+                    if failed_count > 0:
+                        ai_summary_lines.append(f"- **Failed**: {failed_count}")
+
+                    # Show chapter results summary if available
+                    if chapter_results and len(chapter_results) > 0:
+                        ai_summary_lines.append(f"\n### Chapter Results ({len(chapter_results)} chapters)\n")
+                        for cr in chapter_results[:10]:  # Show first 10 chapters
+                            status_icon = "✅" if cr.get("status") == "generated" else "⚠️"
+                            ai_summary_lines.append(f"- {status_icon} Ch.{cr.get('chapter_index', '?')}: {cr.get('chapter_title', 'Unknown')} ({cr.get('status', 'unknown')})")
+                        if len(chapter_results) > 10:
+                            ai_summary_lines.append(f"- ... and {len(chapter_results) - 10} more chapters")
+
+                # Usage section
+                if ai_usage:
+                    ai_summary_lines.append(f"\n### AI Usage\n")
+                    total_tokens = ai_usage.get("total_tokens", 0)
+                    if total_tokens > 0:
+                        ai_summary_lines.append(f"- **Total Tokens**: {total_tokens:,}")
+
+                # Warnings section
+                if ai_warnings and len(ai_warnings) > 0:
+                    ai_summary_lines.append(f"\n### ⚠️ Warnings ({len(ai_warnings)})\n")
+                    for warning in ai_warnings[:5]:  # Show first 5 warnings
+                        ai_summary_lines.append(f"- {warning}")
+                    if len(ai_warnings) > 5:
+                        ai_summary_lines.append(f"- ... and {len(ai_warnings) - 5} more warnings")
+
+                context.preview({
+                    "type": "markdown",
+                    "data": "\n".join(ai_summary_lines)
+                })
+
         logger.info(f"Conversion completed: {epub_file}")
 
-        # Return result
+        # Return result with AI processing details
         return {
             "epub_file": result["output_file"],
+            "ai_result": ai_result,
+            "chapter_results": chapter_results,
+            "ai_usage": ai_usage,
+            "ai_warnings": ai_warnings,
         }
 
     except Exception as e:

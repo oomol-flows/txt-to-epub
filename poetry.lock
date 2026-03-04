@@ -810,14 +810,14 @@ telegram = ["requests"]
 
 [[package]]
 name = "txt-to-epub-converter"
-version = "0.1.2"
+version = "0.2.4"
 description = "A powerful Python library for converting plain text files to professional EPUB eBooks with intelligent chapter detection"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "txt_to_epub_converter-0.1.2-py3-none-any.whl", hash = "sha256:b93e5238a3a6ecc5e27eb9951c6c926f507f2c6c3acc7ba92f0f1234c388513e"},
-    {file = "txt_to_epub_converter-0.1.2.tar.gz", hash = "sha256:0fb227b8418db76485952ac0a8ecee5c0a048bc47f8b62124503f8e73889b80b"},
+    {file = "txt_to_epub_converter-0.2.4-py3-none-any.whl", hash = "sha256:d10532bf9483275ca46e7bd3058bf90c853802f5a6f49e72a8522ac3d04f51d4"},
+    {file = "txt_to_epub_converter-0.2.4.tar.gz", hash = "sha256:8e53a9b75117777fff56fd3c74edf528b33cc1186293b18c4c5e1e987b6cdafa"},
 ]
 
 [package.dependencies]
@@ -878,4 +878,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "de1ff78d282416d3957922ac992e9785dd2c4e960769b37cde1634a0f253cba7"
+content-hash = "0ad397faa529d3cdb943f0c68e9bfcd2a4232a49d9f31d6de83df8c3df4a6126"

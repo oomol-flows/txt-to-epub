@@ -7,6 +7,13 @@
           "x": 141,
           "y": 161
         }
+      },
+      "sections": {
+        "inputs": {
+          "groupCollapsed": {
+            "Smart TOC Analysis": true
+          }
+        }
       }
     }
   }

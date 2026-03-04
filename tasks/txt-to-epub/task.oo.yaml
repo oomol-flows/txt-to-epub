@@ -45,12 +45,6 @@ inputs_def:
       ui:widget: file
     value:
     nullable: true
-  - handle: enable_ai_metadata
-    description: "%enable-ai-auto-detection-of-author-and-title%"
-    json_schema:
-      type: boolean
-    value: true
-    nullable: true
   - handle: enable_ai_cover
     description: "%enable-ai-generated-cover%"
     json_schema:
@@ -61,23 +55,7 @@ inputs_def:
     description: "%enable-ai-generated-illustrations%"
     json_schema:
       type: boolean
-    value: true
-    nullable: true
-  - handle: illustration_density
-    description: "%illustration-density-when-ai-illustrations-enabled%"
-    json_schema:
-      enum:
-        - low
-        - medium
-        - high
-        - ultra
-      ui:options:
-        labels:
-          - Low (fewer images)
-          - Medium
-          - High (more images)
-          - Ultra (maximum images)
-    value: medium
+    value: false
     nullable: true
   - group: Smart TOC Analysis
     collapsed: true
@@ -85,7 +63,7 @@ inputs_def:
     description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
       type: boolean
-    value: true
+    value:
     nullable: true
   - handle: llm_confidence_threshold
     description: "%confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often%"
@@ -133,7 +111,7 @@ inputs_def:
     description: "%enable-checkpoint-resume-for-interrupted-conversions%"
     json_schema:
       type: boolean
-    value: true
+    value:
     nullable: true
   - handle: llm
     description: "%llm-model-configuration%"

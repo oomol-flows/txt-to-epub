@@ -1,4 +1,4 @@
-version: 0.2.4
+version: 0.2.5
 scripts:
   bootstrap: |
     npm install
@@ -11,4 +11,3 @@ displayName: "%txt-to-epub%"
 releaseNotes: add report
 repository: https://github.com/oomol-flows/txt-to-epub
 dependencies:
-  txt-to-epub: 0.2.4

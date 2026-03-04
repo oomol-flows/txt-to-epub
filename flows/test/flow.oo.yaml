@@ -8,9 +8,9 @@ nodes:
       - handle: epub_file
         value:
       - handle: book_title
-        value: null
+        value:
       - handle: author
-        value: null
+        value:
       - handle: cover_image
         value: null
       - handle: enable_smart_toc
@@ -36,9 +36,5 @@ nodes:
       - handle: enable_ai_cover
         value:
       - handle: enable_ai_illustrations
-        value:
-      - handle: illustration_density
-        value:
-      - handle: enable_ai_metadata
         value:
     task: self::txt-to-epub
