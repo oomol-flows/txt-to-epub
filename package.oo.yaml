@@ -11,4 +11,4 @@ displayName: "%txt-to-epub%"
 releaseNotes: add report
 repository: https://github.com/oomol-flows/txt-to-epub
 dependencies:
-  {}
+  txt-to-epub: 0.2.4

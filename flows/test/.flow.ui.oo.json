@@ -7,15 +7,6 @@
           "x": 141,
           "y": 161
         }
-      },
-      "sections": {
-        "inputs": {
-          "groupCollapsed": {
-            "Book Metadata": true,
-            "Smart TOC Analysis": true,
-            "Advanced Options": true
-          }
-        }
       }
     }
   }

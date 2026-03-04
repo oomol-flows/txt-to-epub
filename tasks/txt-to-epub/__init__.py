@@ -11,6 +11,8 @@ class Inputs(typing.TypedDict):
     book_title: str | None
     author: str | None
     cover_image: str | None
+    enable_ai_cover: bool | None
+    enable_ai_illustrations: bool | None
     enable_smart_toc: bool | None
     llm_confidence_threshold: float | None
     llm_toc_detection_threshold: float | None
@@ -18,9 +20,9 @@ class Inputs(typing.TypedDict):
     toc_detection_score_threshold: float | None
     toc_max_scan_lines: int | None
     enable_resume: bool | None
-    llm: LLMModelOptions | None
+    llm: LLMModelOptions
 class Outputs(typing.TypedDict):
-    epub_file: str
+    epub_file: typing.NotRequired[str]
 #endregion
 
 # Import library functions
@@ -112,26 +114,43 @@ def main(params: Inputs, context: Context) -> Outputs:
         if enable_resume is None:
             enable_resume = True
 
+        # AI cover and illustrations settings
+        enable_ai_cover = params.get('enable_ai_cover')
+        if enable_ai_cover is None:
+            enable_ai_cover = True
+
+        enable_ai_illustrations = params.get('enable_ai_illustrations')
+        if enable_ai_illustrations is None:
+            enable_ai_illustrations = False
+
         # Log configuration
         logger.info(f"Book Title: {book_title}")
         logger.info(f"Author: {author}")
         logger.info(f"Cover Image: {cover_image or 'None'}")
         logger.info(f"Smart TOC: {enable_smart_toc}")
+        logger.info(f"AI Cover: {enable_ai_cover}")
+        logger.info(f"AI Illustrations: {enable_ai_illustrations}")
         logger.info(f"LLM Model: {llm_config.get('model', 'oomol-chat')}")
         logger.info(f"Confidence Threshold: {llm_confidence_threshold}")
         logger.info(f"Resume Enabled: {enable_resume}")
 
+        # Determine if LLM is needed (for smart TOC or AI features)
+        need_llm = enable_smart_toc or enable_ai_cover or enable_ai_illustrations
+
         # Configure parser using library's ParserConfig
         config = ParserConfig(
             enable_llm_assistance=enable_smart_toc,
-            llm_api_key=context.oomol_llm_env.get("api_key") if enable_smart_toc else None,
-            llm_base_url=context.oomol_llm_env.get("base_url_v1") if enable_smart_toc else None,
-            llm_model=llm_config.get('model', 'oomol-chat') if enable_smart_toc else 'oomol-chat',
+            llm_api_key=context.oomol_llm_env.get("api_key") if need_llm else None,
+            llm_base_url=context.oomol_llm_env.get("base_url_v1") if need_llm else None,
+            llm_model=llm_config.get('model', 'oomol-chat') if need_llm else 'oomol-chat',
             llm_confidence_threshold=llm_confidence_threshold,
             llm_toc_detection_threshold=llm_toc_detection_threshold,
             llm_no_toc_threshold=llm_no_toc_threshold,
             toc_detection_score_threshold=toc_detection_score_threshold,
-            toc_max_scan_lines=toc_max_scan_lines
+            toc_max_scan_lines=toc_max_scan_lines,
+            # AI cover and illustrations settings
+            enable_ai_cover=enable_ai_cover,
+            enable_ai_illustrations=enable_ai_illustrations
         )
 
         # Execute conversion using library function

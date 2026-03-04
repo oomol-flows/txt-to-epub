@@ -4,6 +4,7 @@ nodes:
     title: "%txt-epub-1%"
     inputs_from:
       - handle: txt_file
+        value: /oomol-driver/oomol-storage/book_source/qm.txt
       - handle: epub_file
         value:
       - handle: book_title
@@ -32,4 +33,8 @@ nodes:
           temperature: 0.6
           top_p: 0.8
           max_tokens: 8100
+      - handle: enable_ai_cover
+        value:
+      - handle: enable_ai_illustrations
+        value:
     task: self::txt-to-epub

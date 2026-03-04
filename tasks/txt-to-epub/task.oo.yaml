@@ -12,7 +12,7 @@ inputs_def:
               - txt
     nullable: false
   - group: Book Metadata
-    collapsed: true
+    collapsed: false
   - handle: epub_file
     description: "%output-epub-file-path-optional-defaults-to-session-directory%"
     json_schema:
@@ -45,13 +45,25 @@ inputs_def:
       ui:widget: file
     value:
     nullable: true
+  - handle: enable_ai_cover
+    description: "%enable-ai-generated-cover%"
+    json_schema:
+      type: boolean
+    value: true
+    nullable: true
+  - handle: enable_ai_illustrations
+    description: "%enable-ai-generated-illustrations%"
+    json_schema:
+      type: boolean
+    value: false
+    nullable: true
   - group: Smart TOC Analysis
     collapsed: true
   - handle: enable_smart_toc
     description: "%enable-llm-powered-smart-toc-analysis%"
     json_schema:
       type: boolean
-    value:
+    value: true
     nullable: true
   - handle: llm_confidence_threshold
     description: "%confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often%"

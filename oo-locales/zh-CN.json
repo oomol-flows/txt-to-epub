@@ -10,6 +10,8 @@
   "book-title-optional-auto-detected-if-not-provided": "书名（可选，如果未提供则自动检测）",
   "author-name-optional-auto-detected-if-not-provided": "作者姓名（可选，若未提供将自动检测）",
   "cover-image-file-path-optional": "封面图片文件路径（可选）",
+  "enable-ai-generated-cover": "启用 AI 生成封面",
+  "enable-ai-generated-illustrations": "启用 AI 生成插图",
   "enable-llm-powered-smart-toc-analysis": "启用 LLM 驱动的智能 TOC 分析",
   "confidence-threshold-for-llm-trigger-0-0-1-0-lower-more-often": "LLM 触发的置信度阈值（0.0-1.0，数值越低触发越频繁）",
   "llm-confidence-threshold-for-confirming-toc-exists-0-0-1-0": "用于确认 TOC 是否存在的 LLM 置信度阈值（0.0-1.0）",
