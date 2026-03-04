@@ -11,8 +11,10 @@ class Inputs(typing.TypedDict):
     book_title: str | None
     author: str | None
     cover_image: str | None
+    enable_ai_metadata: bool | None
     enable_ai_cover: bool | None
     enable_ai_illustrations: bool | None
+    illustration_density: typing.Literal["low", "medium", "high", "ultra"] | None
     enable_smart_toc: bool | None
     llm_confidence_threshold: float | None
     llm_toc_detection_threshold: float | None
@@ -66,7 +68,8 @@ def main(params: Inputs, context: Context) -> Outputs:
             book_title = os.path.splitext(txt_filename)[0]
 
         # Set default values for optional parameters
-        author = params.get('author') or 'Unknown Author'
+        # Pass empty string if no author provided - library will skip showing "Unknown Author"
+        author = params.get('author') or ''
         cover_image = params.get('cover_image')  # None if not provided
 
         # Generate output file path
@@ -121,21 +124,32 @@ def main(params: Inputs, context: Context) -> Outputs:
 
         enable_ai_illustrations = params.get('enable_ai_illustrations')
         if enable_ai_illustrations is None:
-            enable_ai_illustrations = False
+            enable_ai_illustrations = True
+
+        # AI metadata settings (auto-detect author and title)
+        enable_ai_metadata = params.get('enable_ai_metadata')
+        if enable_ai_metadata is None:
+            enable_ai_metadata = True
+
+        # Illustration density settings (0.2.0: use density directly)
+        illustration_density = params.get('illustration_density', 'medium')
 
         # Log configuration
         logger.info(f"Book Title: {book_title}")
-        logger.info(f"Author: {author}")
+        logger.info(f"Author: {author or 'Not provided (AI will detect)'}")
         logger.info(f"Cover Image: {cover_image or 'None'}")
         logger.info(f"Smart TOC: {enable_smart_toc}")
+        logger.info(f"AI Metadata: {enable_ai_metadata}")
         logger.info(f"AI Cover: {enable_ai_cover}")
         logger.info(f"AI Illustrations: {enable_ai_illustrations}")
+        if enable_ai_illustrations:
+            logger.info(f"Illustration Density: {illustration_density}")
         logger.info(f"LLM Model: {llm_config.get('model', 'oomol-chat')}")
         logger.info(f"Confidence Threshold: {llm_confidence_threshold}")
         logger.info(f"Resume Enabled: {enable_resume}")
 
         # Determine if LLM is needed (for smart TOC or AI features)
-        need_llm = enable_smart_toc or enable_ai_cover or enable_ai_illustrations
+        need_llm = enable_smart_toc or enable_ai_cover or enable_ai_illustrations or enable_ai_metadata
 
         # Configure parser using library's ParserConfig
         config = ParserConfig(
@@ -148,9 +162,11 @@ def main(params: Inputs, context: Context) -> Outputs:
             llm_no_toc_threshold=llm_no_toc_threshold,
             toc_detection_score_threshold=toc_detection_score_threshold,
             toc_max_scan_lines=toc_max_scan_lines,
-            # AI cover and illustrations settings
+            # AI metadata, cover and illustrations settings
+            enable_ai_metadata=enable_ai_metadata,
             enable_ai_cover=enable_ai_cover,
-            enable_ai_illustrations=enable_ai_illustrations
+            enable_ai_illustrations=enable_ai_illustrations,
+            ai_illustration_density=illustration_density  # 0.2.0: use density directly
         )
 
         # Execute conversion using library function

@@ -37,4 +37,8 @@ nodes:
         value:
       - handle: enable_ai_illustrations
         value:
+      - handle: illustration_density
+        value:
+      - handle: enable_ai_metadata
+        value:
     task: self::txt-to-epub
