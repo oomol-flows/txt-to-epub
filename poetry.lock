@@ -810,14 +810,14 @@ telegram = ["requests"]
 
 [[package]]
 name = "txt-to-epub-converter"
-version = "0.2.8"
+version = "0.2.9"
 description = "A powerful Python library for converting plain text files to professional EPUB eBooks with intelligent chapter detection"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "txt_to_epub_converter-0.2.8-py3-none-any.whl", hash = "sha256:11c3f0f28954e2ab4187f61ce6cc43a7e5ac5342b35382734a08722406d0d232"},
-    {file = "txt_to_epub_converter-0.2.8.tar.gz", hash = "sha256:52178a040a0fe7259548355c2a3302eeea3204f29f93a8075f6e37c3e7ce3b52"},
+    {file = "txt_to_epub_converter-0.2.9-py3-none-any.whl", hash = "sha256:4b1d6fd322c6918459ca281e9668db65543a9d57d880864bbbdb1ecee650c268"},
+    {file = "txt_to_epub_converter-0.2.9.tar.gz", hash = "sha256:eea6803d7d29b8c6144c959d32dbb817fe62662dd3408cfdddd6a7afaf0c7e1d"},
 ]
 
 [package.dependencies]

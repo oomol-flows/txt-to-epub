@@ -12,7 +12,7 @@ inputs_def:
               - txt
     nullable: false
   - group: Book Metadata
-    collapsed: false
+    collapsed: true
   - handle: epub_file
     description: "%output-epub-file-path-optional-defaults-to-session-directory%"
     json_schema:

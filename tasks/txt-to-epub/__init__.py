@@ -150,6 +150,20 @@ def main(params: Inputs, context: Context) -> Outputs:
         # Determine if LLM is needed (for smart TOC or AI features)
         need_llm = enable_smart_toc or enable_ai_cover or enable_ai_illustrations or enable_ai_metadata
 
+        # Get fusion API base URL for image generation
+        # Determine environment based on URL suffix (dev or com)
+        raw_base_url = context.oomol_llm_env.get("base_url_v1") if enable_ai_cover or enable_ai_illustrations else None
+        if raw_base_url:
+            if ".dev" in raw_base_url:
+                fusion_base_url = "https://fusion-api.oomol.dev/v1"
+            elif ".com" in raw_base_url:
+                fusion_base_url = "https://fusion-api.oomol.com/v1"
+            else:
+                fusion_base_url = raw_base_url
+        else:
+            fusion_base_url = None
+        fusion_image_api_url = f"{fusion_base_url}/image/generate" if fusion_base_url else None
+
         # Configure parser using library's ParserConfig
         config = ParserConfig(
             enable_llm_assistance=enable_smart_toc,
@@ -165,7 +179,9 @@ def main(params: Inputs, context: Context) -> Outputs:
             enable_ai_metadata=enable_ai_metadata,
             enable_ai_cover=enable_ai_cover,
             enable_ai_illustrations=enable_ai_illustrations,
-            ai_illustration_density=illustration_density  # 0.2.0: use density directly
+            ai_illustration_density=illustration_density,  # 0.2.0: use density directly
+            # Fusion image API URL for AI cover/illustrations
+            fusion_image_api_url=fusion_image_api_url
         )
 
         # Execute conversion using library function
