@@ -291,5 +291,20 @@ def main(params: Inputs, context: Context) -> Outputs:
         }
 
     except Exception as e:
+        # Check for 402 Payment Required error (insufficient credit)
+        # These errors should be raised as-is without wrapping
+        error_str = str(e)
+        is_402_error = (
+            "402" in error_str or
+            "Payment Required" in error_str or
+            "OOMOL_INSUFFICIENT_CREDIT" in error_str or
+            "account is in deficit" in error_str
+        )
+        
+        if is_402_error:
+            # 402 欠费错误，直接抛出原始错误信息
+            logger.error(f"Payment error (402): {e}")
+            raise
+        
         logger.error(f"Error during conversion: {e}")
         raise RuntimeError(f"Conversion failed: {str(e)}") from e
