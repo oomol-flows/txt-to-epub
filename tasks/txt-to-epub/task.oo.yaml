@@ -160,3 +160,4 @@ icon: ":twemoji:blue-book:"
 applet: true
 description: "%converts-txt-book-files-to-epub-format-with-smart-toc-detection%"
 private: false
+long_running: true

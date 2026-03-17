@@ -162,7 +162,7 @@ def main(params: Inputs, context: Context) -> Outputs:
                 fusion_base_url = raw_base_url
         else:
             fusion_base_url = None
-        fusion_image_api_url = f"{fusion_base_url}/doubao-text-to-image-seedream/action/generate" if fusion_base_url else None
+        fusion_image_api_url = f"{fusion_base_url}/text-to-epub-illustrate/action/generate" if fusion_base_url else None
 
         # Configure parser using library's ParserConfig
         config = ParserConfig(
